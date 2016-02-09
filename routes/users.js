@@ -45,6 +45,8 @@ router.post('/reg', function(req, res, next) {
 
 /* POST users login process */
 router.post('/login', function(req, res, next) {
+    console.log('세션!!!');
+    console.log(req.sessions);
     var data = {
         'kakao_id': req.body.kakao_id
     };
@@ -58,6 +60,7 @@ router.post('/login', function(req, res, next) {
         user_id : 10,
         username : "Young Soo"
     };
+    //console.log(req.session);
 
     var dummy_data = {
         result : true,

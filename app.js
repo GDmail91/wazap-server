@@ -8,6 +8,8 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+var credentials = require('./credentials.js');
+
 var app = express();
 
 // view engine setup
@@ -31,11 +33,20 @@ switch(app.get('env')){
 
 // session configuration
 var expressSession = require('express-session');
+var redis = require('redis');
+var RedisStore = require('connect-redis')(expressSession);
+
+var redisClient  = redis.createClient();
+
 app.use(expressSession({
-  resave: false,
-  saveUninitialized: false,
   secret: credentials.cookieSecret,
-  store: sessionStore
+  store: new RedisStore({
+    port : credentials.redis.port,
+    host : credentials.redis.host,
+    client : redisClient,
+    ttl : credentials.redis.ttl }),
+  saveUninitialized: false, // don't create session until something stored,
+  resave: false // don't save session if unmodified
 }));
 
 app.use(logger('dev'));
