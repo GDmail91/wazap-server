@@ -1,4 +1,15 @@
-#### HEAD
+#### 4.8.0
+
+- Added Spanish, French, Portuguese and Dutch support for `isAlpha()` and `isAlphanumeric()`
+  ([#492](https://github.com/chriso/validator.js/pull/492))
+- Added a Brazilian locale to `isMobilePhone()`
+  ([#489](https://github.com/chriso/validator.js/pull/489))
+- Reject IPv4 addresses with invalid zero padding
+  ([#490](https://github.com/chriso/validator.js/pull/490))
+- Fix the client-side version when used with RequireJS
+  ([#494](https://github.com/chriso/validator.js/issues/494))
+
+#### 4.7.1
 
 - Use [node-depd](https://github.com/dougwilson/nodejs-depd) to print deprecation notices
   ([#487](https://github.com/chriso/validator.js/issues/487))

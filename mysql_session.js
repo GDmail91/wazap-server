@@ -1,38 +1,21 @@
-//redis session require
-var session = require('express-session');
-var redis = require('redis');
-var redisStore = require('connect-redis')(session);
-var client = redis.createClient();
 
-module.exports = function(app) {
-    app.use(session(
-        {
-            secret: 'secret_key',
-            store: new redisStore({
-                host: "127.0.0.1",
-                port: 6379,
-                client: client,
-                prefix : "session:",
-                db : 0
-            }),
-            saveUninitialized: false, // don't create session until something stored,
-            resave: true // don't save session if unmodified
-        }
-    ));
+var mysql = require('mysql');
+var credentials = require('./credentials');
 
-    //....아래쪽...
+var connection = mysql.createConnection({
+    host    : credentials.mysql.host,
+    port : credentials.mysql.port,
+    user : credentials.mysql.user,
+    password : credentials.mysql.password,
+    database: credentials.mysql.database
+});
 
-    //redis session input output
-    var router = express.Router();
-    router.get('/session/set/:value', function(req, res) {
-        req.session.redSession = req.params.value;
-        res.send('session written in Redis successfully');
-    });
+connection.connect(function(err) {
+    if (err) {
+        console.error('mysql connection error');
+        console.error(err);
+        throw err;
+    }
+});
 
-    app.get('/session/get/', function(req, res) {
-        if(req.session.redSession)
-            res.send('the session value stored in Redis is: ' + req.session.redSess);
-        else
-            res.send("no session value stored in Redis ");
-    });
-};
+module.exports = connection;

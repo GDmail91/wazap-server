@@ -35,7 +35,7 @@
 
     'use strict';
 
-    validator = { version: '4.7.1', coerce: true };
+    validator = { version: '4.8.0', coerce: true };
 
     var emailUserPart = /^[a-z\d!#\$%&'\*\+\-\/=\?\^_`{\|}~]+$/i;
     var quotedEmailUser = /^([\s\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e]|(\\[\x01-\x09\x0b\x0c\x0d-\x7f]))*$/i;
@@ -54,7 +54,7 @@
 
     var macAddress = /^([0-9a-fA-F][0-9a-fA-F]:){5}([0-9a-fA-F][0-9a-fA-F])$/;
 
-    var ipv4Maybe = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/
+    var ipv4Maybe = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
       , ipv6Block = /^[0-9A-F]{1,4}$/i;
 
     var uuid = {
@@ -67,12 +67,28 @@
     var alpha = {
         'en-US': /^[A-Z]+$/i,
         'de-DE': /^[A-ZÄÖÜß]+$/i,
+        'es-ES': /^[A-ZÁÉÍÑÓÚÜ]+$/i,
+        'fr-FR': /^[A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
+        'nl-NL': /^[A-ZÉËÏÓÖÜ]+$/i,
+        'pt-PT': /^[A-ZÃÁÀÂÇÉÊÍÕÓÔÚÜ]+$/i
       }
       , alphanumeric = {
         'en-US': /^[0-9A-Z]+$/i,
-        'de-DE': /^[0-9A-ZÄÖÜß]+$/i
-      }
-      , numeric = /^[-+]?[0-9]+$/
+        'de-DE': /^[0-9A-ZÄÖÜß]+$/i,
+        'es-ES': /^[0-9A-ZÁÉÍÑÓÚÜ]+$/i,
+        'fr-FR': /^[0-9A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
+        'nl-NL': /^[0-9A-ZÉËÏÓÖÜ]+$/i,
+        'pt-PT': /^[0-9A-ZÃÁÀÂÇÉÊÍÕÓÔÚÜ]+$/i
+      };
+
+    var englishLocales = ['AU', 'GB', 'HK', 'IN', 'NZ', 'ZA', 'ZM'];
+    for (var locale, i = 0; i < englishLocales.length; i++) {
+        locale = 'en-' + englishLocales[i];
+        alpha[locale] = alpha['en-US'];
+        alphanumeric[locale] = alphanumeric['en-US'];
+    }
+
+    var numeric = /^[-+]?[0-9]+$/
       , int = /^(?:[-+]?(?:0|[1-9][0-9]*))$/
       , float = /^(?:[-+]?(?:[0-9]+))?(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/
       , hexadecimal = /^[0-9A-F]+$/i
@@ -89,26 +105,27 @@
     var base64 = /^(?:[A-Z0-9+\/]{4})*(?:[A-Z0-9+\/]{2}==|[A-Z0-9+\/]{3}=|[A-Z0-9+\/]{4})$/i;
 
     var phones = {
-      'zh-CN': /^(\+?0?86\-?)?((13\d|14[57]|15[^4,\D]|17[678]|18\d)\d{8}|170[059]\d{7})$/,
-      'zh-TW': /^(\+?886\-?|0)?9\d{8}$/,
-      'en-ZA': /^(\+?27|0)\d{9}$/,
-      'en-AU': /^(\+?61|0)4\d{8}$/,
-      'en-HK': /^(\+?852\-?)?[569]\d{3}\-?\d{4}$/,
-      'fr-FR': /^(\+?33|0)[67]\d{8}$/,
-      'pt-PT': /^(\+?351)?9[1236]\d{7}$/,
-      'el-GR': /^(\+?30)?(69\d{8})$/,
-      'en-GB': /^(\+?44|0)7\d{9}$/,
       'en-US': /^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/,
+      'de-DE': /^(\+?49[ \.\-])?([\(]{1}[0-9]{1,6}[\)])?([0-9 \.\-\/]{3,20})((x|ext|extension)[ ]?[0-9]{1,4})?$/,
+      'el-GR': /^(\+?30)?(69\d{8})$/,
+      'en-AU': /^(\+?61|0)4\d{8}$/,
+      'en-GB': /^(\+?44|0)7\d{9}$/,
+      'en-HK': /^(\+?852\-?)?[569]\d{3}\-?\d{4}$/,
+      'en-IN': /^(\+?91|0)?[789]\d{9}$/,
+      'en-NZ': /^(\+?64|0)2\d{7,9}$/,
+      'en-ZA': /^(\+?27|0)\d{9}$/,
       'en-ZM': /^(\+?26)?09[567]\d{7}$/,
-      'ru-RU': /^(\+?7|8)?9\d{9}$/,
+      'es-ES': /^(\+?34)?(6\d{1}|7[1234])\d{7}$/,
+      'fi-FI': /^(\+?358|0)\s?(4(0|1|2|4|5)?|50)\s?(\d\s?){4,8}\d$/,
+      'fr-FR': /^(\+?33|0)[67]\d{8}$/,
       'nb-NO': /^(\+?47)?[49]\d{7}$/,
       'nn-NO': /^(\+?47)?[49]\d{7}$/,
+      'pt-BR': /^(\+?55|0)\-?[1-9]{2}\-?[2-9]{1}\d{3,4}\-?\d{4}$/,
+      'pt-PT': /^(\+?351)?9[1236]\d{7}$/,
+      'ru-RU': /^(\+?7|8)?9\d{9}$/,
       'vi-VN': /^(\+?84|0)?((1(2([0-9])|6([2-9])|88|99))|(9((?!5)[0-9])))([0-9]{7})$/,
-      'en-NZ': /^(\+?64|0)2\d{7,9}$/,
-      'en-IN': /^(\+?91|0)?[789]\d{9}$/,
-      'es-ES': /^(\+?34)?(6\d{1}|7[1234])\d{7}$/,
-      'de-DE': /^(\+?49[ \.\-])?([\(]{1}[0-9]{1,6}[\)])?([0-9 \.\-\/]{3,20})((x|ext|extension)[ ]?[0-9]{1,4})?$/,
-      'fi-FI': /^(\+?358|0)\s?(4(0|1|2|4|5)?|50)\s?(\d\s?){4,8}\d$/
+      'zh-CN': /^(\+?0?86\-?)?((13\d|14[57]|15[^4,\D]|17[678]|18\d)\d{8}|170[059]\d{7})$/,
+      'zh-TW': /^(\+?886\-?|0)?9\d{8}$/
     };
 
     // from http://goo.gl/0ejHHW
@@ -127,17 +144,25 @@
     validator.init = function () {
         for (var name in validator) {
             if (typeof validator[name] !== 'function' || name === 'toString' ||
-                    name === 'toDate' || name === 'extend' || name === 'init') {
+                    name === 'toDate' || name === 'extend' || name === 'init' ||
+                    name === 'isServerSide') {
                 continue;
             }
             validator.extend(name, validator[name]);
         }
     };
 
+    validator.isServerSide = function () {
+        return typeof module === 'object' && module &&
+            typeof module.exports === 'object' &&
+            typeof process === 'object' &&
+            typeof require === 'function';
+    };
+
     var depd = null;
     validator.deprecation = function (msg) {
         if (depd === null) {
-            if (typeof require !== 'function') {
+            if (!validator.isServerSide()) {
                 return;
             }
             depd = require('depd')('validator');
@@ -450,12 +475,18 @@
 
     validator.isAlpha = function (str, locale) {
         locale = locale || 'en-US';
-        return alpha[locale].test(str);
+        if (locale in alpha) {
+            return alpha[locale].test(str);
+        }
+        throw new Error('Invalid locale \'' + locale + '\'');
     };
 
     validator.isAlphanumeric = function (str, locale) {
         locale = locale || 'en-US';
-        return alphanumeric[locale].test(str);
+        if (locale in alphanumeric) {
+            return alphanumeric[locale].test(str);
+        }
+        throw new Error('Invalid locale \'' + locale + '\'');
     };
 
     validator.isNumeric = function (str) {

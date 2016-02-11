@@ -3,6 +3,18 @@
  ********************/
 
 var express = require('express');
+var credentials = require('../credentials');
+var mysql = require('mysql');
+var pool = mysql.createPool({
+    host    : credentials.mysql.host,
+    port : credentials.mysql.port,
+    user : credentials.mysql.user,
+    password : credentials.mysql.password,
+    database: credentials.mysql.database,
+    connectionLimit:20,
+    waitForConnections:false
+});
+
 var router = express.Router();
 /*
 router.get('/', function(req, res, next) {
@@ -12,49 +24,101 @@ router.get('/', function(req, res, next) {
 /* POST users registration */
 router.post('/reg', function(req, res, next) {
     var data = {
-        'user_id': req.session.userinfo.user_id,
         'kakao_id': req.body.kakao_id,
         'username': req.body.username,
         'school': req.body.school,
         'age': req.body.age,
-        'magor': req.body.magor,
+        'major': req.body.major,
         'locate': req.body.locate,
         'introduce': req.body.introduce,
         'exp': req.body.exp
     };
-    if (data.user_id != null) {
-        // TODO user 생성
+    if(req.session.is_login) {
+        data.user_id = req.session.userinfo.user_id;
 
-        var dummy_data = {
-            result : true,
-            msg : "회원가입에 성공했습니다."
-        };
-        res.header(200);
-        res.send(dummy_data);
-    } else {
         // TODO user 정보 수정
 
         var dummy_data = {
             result : true,
-            msg : "회원가입에 성공했습니다."
+            msg : "정보 수정에 성공했습니다."
         };
         res.header(200);
         res.send(dummy_data);
+
+    } else {
+        // user 생성
+        pool.getConnection(function (err, connection) {
+            var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp];
+            var query = connection.query("INSERT INTO users (kakao_id, username, school, age, major, locate, introduce, exp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", insert, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return res.send({ result: false, msg: "회원가입에 실패했습니다. "+err });
+                }
+                connection.release();
+
+                var dummy_data = {
+                    result : true,
+                    msg : "회원가입에 성공했습니다."
+                };
+                res.header(200);
+                res.send(dummy_data);
+            });
+        });
     }
 });
 
 /* POST users login process */
 router.post('/login', function(req, res, next) {
     console.log('세션!!!');
-    console.log(req.sessions);
+    console.log(req.session);
+    console.log(req.sessionID);
     var data = {
         'kakao_id': req.body.kakao_id
     };
 
     // TODO login 정보 확인
+    pool.getConnection(function (err, connection) {
+        var select = [data.kakao_id];
+        var query = connection.query("SELECT * FROM users WHERE kakao_id = ?", select, function (err, rows) {
+            if (err) {
+                connection.release();
+                //return res.send({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. "+err });
+            }
+            connection.release();
 
+            if (rows) {
+
+                // Session 정보 세팅
+                req.session.is_login = true;
+                req.session.userinfo = {
+                    is_login: true,
+                    user_id: rows[0].users_id,
+                    username: rows[0].username
+                };
+
+                var dummy_data = {
+                    result: true,
+                    msg: "로그인에 성공했습니다.",
+                    data: {
+                        is_login: true,
+                        user_id: rows[0].users_id,
+                        username: rows[0].username
+                    }
+                };
+
+            } else {
+                var dummy_data = {
+                    result: true,
+                    msg: "로그인에 실패했습니다."
+                };
+            }
+            res.send(dummy_data);
+        });
+    });
+/*
+    // 실서버 사용시
     // Session 정보 세팅
-    req.session.isLogin = true;
+    req.session.is_login = true;
     req.session.userinfo = {
         is_login : true,
         user_id : 10,
@@ -71,8 +135,9 @@ router.post('/login', function(req, res, next) {
                 username : "Young Soo"
         }
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
+*/
 });
 
 /* DELETE login information. */
@@ -93,6 +158,7 @@ router.get('/:user_id', function(req, res, next) {
     var data = {
         'user_id': req.params.user_id
     };
+    console.log(req.session.is_login);
 
     // TODO 사용자 정보 가져옴
 

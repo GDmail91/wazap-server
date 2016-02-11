@@ -3,6 +3,7 @@ var users = require('./routes/users');
 var contests = require('./routes/contests');
 var clips = require('./routes/clips');
 var alrams = require('./routes/alrams');
+var kakao_oauth = require('./routes/kakao_oauth');
 
 module.exports = function(app){
     app.use('/', routes);
@@ -10,5 +11,6 @@ module.exports = function(app){
     app.use('/contests', contests);
     app.use('/clips', clips);
     app.use('/alrams', alrams);
+    app.use('/kakao_oauth', kakao_oauth);
 
 };
