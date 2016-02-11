@@ -37,6 +37,7 @@ router.post('/reg', function(req, res, next) {
     if(data.access_token) {
         // TODO user 정보 수정
         pool.getConnection(function (err, connection) {
+            if (err) throw (err);
             var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp, data.access_token];
             var query = connection.query('UPDATE users SET ' +
                     'kakao_id = ??, ' +
@@ -57,34 +58,12 @@ router.post('/reg', function(req, res, next) {
                     result : true,
                     msg : "정보 수정에 성공했습니다."
                 };
-                res.statusCode(200);
+                res.statusCode = 200;
                 return res.send(dummy_data);
             });
         });
     }
     res.send({ result: false, msg: "정보 수정에 실패했습니다. 원인: 토큰 데이터가 없습니다" });
-    /*
-    else {
-        // user 생성
-        pool.getConnection(function (err, connection) {
-            var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp];
-            var query = connection.query("INSERT INTO Users (kakao_id, username, school, age, major, locate, introduce, exp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", insert, function (err, rows) {
-                if (err) {
-                    connection.release();
-                    return res.send({ result: false, msg: "회원가입에 실패했습니다. "+err });
-                }
-                connection.release();
-
-                var dummy_data = {
-                    result : true,
-                    msg : "회원가입에 성공했습니다."
-                };
-                res.statusCode(200);
-                res.send(dummy_data);
-            });
-        });
-    }
-    */
 });
 
 /* POST users authenticate process */
@@ -150,7 +129,7 @@ router.delete('/login', function(req, res, next) {
         result : true,
         msg : "로그아웃 되었습니다."
     };
-    res.statusCode(200);
+    res.statusCode = 200;
     res.send(dummy_data);
 });
 
