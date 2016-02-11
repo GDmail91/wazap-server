@@ -11,8 +11,8 @@ var pool = mysql.createPool({
     user : credentials.mysql.user,
     password : credentials.mysql.password,
     database: credentials.mysql.database,
-    connectionLimit:20,
-    waitForConnections:false
+    connectionLimit: 20,
+    waitForConnections: false
 });
 
 var router = express.Router();
@@ -24,6 +24,7 @@ router.get('/', function(req, res, next) {
 /* POST users registration */
 router.post('/reg', function(req, res, next) {
     var data = {
+        'access_token': req.body.access_token,
         'kakao_id': req.body.kakao_id,
         'username': req.body.username,
         'school': req.body.school,
@@ -33,23 +34,41 @@ router.post('/reg', function(req, res, next) {
         'introduce': req.body.introduce,
         'exp': req.body.exp
     };
-    if(req.session.is_login) {
-        data.user_id = req.session.userinfo.user_id;
-
+    if(data.access_token) {
         // TODO user 정보 수정
+        pool.getConnection(function (err, connection) {
+            var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp, data.access_token];
+            var query = connection.query('UPDATE users SET ' +
+                    'kakao_id = ??, ' +
+                    'username = ??, ' +
+                    'school = ??, ' +
+                    'age = ??, ' +
+                    'major = ??, ' +
+                    'locate = ??, ' +
+                    'introduce = ??, ' +
+                    'exp = ?? WHERE kakao_access_token = ?', insert, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return res.send({ result: false, msg: "정보 수정에 실패했습니다. 원인: "+err });
+                }
+                connection.release();
 
-        var dummy_data = {
-            result : true,
-            msg : "정보 수정에 성공했습니다."
-        };
-        res.header(200);
-        res.send(dummy_data);
-
-    } else {
+                var dummy_data = {
+                    result : true,
+                    msg : "정보 수정에 성공했습니다."
+                };
+                res.statusCode(200);
+                return res.send(dummy_data);
+            });
+        });
+    }
+    res.send({ result: false, msg: "정보 수정에 실패했습니다. 원인: 토큰 데이터가 없습니다" });
+    /*
+    else {
         // user 생성
         pool.getConnection(function (err, connection) {
             var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp];
-            var query = connection.query("INSERT INTO users (kakao_id, username, school, age, major, locate, introduce, exp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", insert, function (err, rows) {
+            var query = connection.query("INSERT INTO Users (kakao_id, username, school, age, major, locate, introduce, exp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", insert, function (err, rows) {
                 if (err) {
                     connection.release();
                     return res.send({ result: false, msg: "회원가입에 실패했습니다. "+err });
@@ -60,58 +79,42 @@ router.post('/reg', function(req, res, next) {
                     result : true,
                     msg : "회원가입에 성공했습니다."
                 };
-                res.header(200);
+                res.statusCode(200);
                 res.send(dummy_data);
             });
         });
     }
+    */
 });
 
-/* POST users login process */
-router.post('/login', function(req, res, next) {
-    console.log('세션!!!');
-    console.log(req.session);
-    console.log(req.sessionID);
+/* POST users authenticate process */
+router.post('/auth', function(req, res, next) {
     var data = {
-        'kakao_id': req.body.kakao_id
+        'access_token': req.body.access_token
     };
 
-    // TODO login 정보 확인
+    // login 정보 확인
     pool.getConnection(function (err, connection) {
-        var select = [data.kakao_id];
-        var query = connection.query("SELECT * FROM users WHERE kakao_id = ?", select, function (err, rows) {
+        var select = [data.access_token];
+        var query = connection.query("SELECT * FROM Users WHERE kakao_access_token = ?", select, function (err, rows) {
             if (err) {
                 connection.release();
-                //return res.send({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. "+err });
+                return res.send({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err });
             }
             connection.release();
 
-            if (rows) {
-
-                // Session 정보 세팅
-                req.session.is_login = true;
-                req.session.userinfo = {
-                    is_login: true,
-                    user_id: rows[0].users_id,
-                    username: rows[0].username
-                };
-
+            if (rows.length != 0) {
                 var dummy_data = {
                     result: true,
-                    msg: "로그인에 성공했습니다.",
-                    data: {
-                        is_login: true,
-                        user_id: rows[0].users_id,
-                        username: rows[0].username
-                    }
+                    msg: "인증에 성공했습니다."
                 };
-
             } else {
                 var dummy_data = {
-                    result: true,
-                    msg: "로그인에 실패했습니다."
+                    result: false,
+                    msg: "인증에 실패했습니다."
                 };
             }
+            res.statusCode = 200;
             res.send(dummy_data);
         });
     });
@@ -142,14 +145,12 @@ router.post('/login', function(req, res, next) {
 
 /* DELETE login information. */
 router.delete('/login', function(req, res, next) {
-    req.session.isLogin = false;
-    req.session.userinfo = {};
-
+    // TODO 로그아웃 처리
     var dummy_data = {
         result : true,
         msg : "로그아웃 되었습니다."
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 });
 
@@ -158,26 +159,34 @@ router.get('/:user_id', function(req, res, next) {
     var data = {
         'user_id': req.params.user_id
     };
-    console.log(req.session.is_login);
 
-    // TODO 사용자 정보 가져옴
+    // 사용자 정보 가져옴
+    pool.getConnection(function (err, connection) {
+        var select = [data.user_id];
 
+        var query = connection.query("SELECT username, major, school, locate, kakao_id, introduce, exp, age FROM Users WHERE users_id = ?", select, function (err, rows) {
+            if (err) {
+                connection.release();
+                return res.send({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err });
+            }
+            connection.release();
 
-    var dummy_data = {
-        result : true,
-        msg : "사용자 정보 가져옴",
-        data : {
-            username : "홍길동",
-            major : "신문방송/크리에이터",
-            school : "중앙대학교",
-            locate : "서울",
-            kakao_id : "alkjsif876",
-            introduce : "200자 소개글입니다.",
-            exp : "기타경험 및 수상내역 입니다."
-        }
-    };
-    res.header(200);
-    res.send(dummy_data);
+            if (rows.length != 0) {
+                var dummy_data = {
+                    result: true,
+                    msg: "사용자 정보 가져옴",
+                    data: rows
+                };
+            } else {
+                var dummy_data = {
+                    result: false,
+                    msg: "사용자 정보가 없습니다."
+                };
+            }
+            res.statusCode = 200;
+            res.send(dummy_data);
+        });
+    });
 });
 
 module.exports = router;

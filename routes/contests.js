@@ -75,7 +75,7 @@ router.get('/', function(req, res, next) {
             views : 50
         }]
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 });
 
@@ -105,7 +105,7 @@ router.post('/', function(req, res, next) {
             result: true,
             msg: "글작성 완료"
         };
-        res.header(200);
+        res.statusCode(200);
         res.send(dummy_data);
     }
 });
@@ -136,7 +136,7 @@ router.get('/:contest_id', function(req, res, next) {
         }
     };
 
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 });
 
@@ -167,7 +167,7 @@ router.put('/:contest_id', function(req, res, next) {
         result : true,
         msg : "수정 완료"
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 });
 
@@ -191,7 +191,7 @@ router.delete('/:contest_id', function(req, res, next) {
         result : true,
         msg : "삭제 완료"
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 });
 
@@ -219,7 +219,7 @@ router.post('/:contest_id/join', function(req, res, next) {
         result : true,
         msg : "신청 완료"
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 });
 
@@ -279,7 +279,7 @@ router.get('/:contest_id/applies', function(req, res, next) {
             is_check : false
         }]
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 });
 
@@ -303,7 +303,7 @@ router.post('/:contest_id/:applies_id', function(req, res, next) {
         result : true,
         msg : "멤버 추가 완료"
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 });
 
@@ -327,7 +327,7 @@ router.delete('/:contest_id/:applies_id', function(req, res, next) {
         result : true,
         msg : "취소 되었습니다."
     };
-    res.header(200);
+    res.statusCode(200);
     res.send(dummy_data);
 
 });
