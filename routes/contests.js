@@ -180,7 +180,7 @@ router.post('/', function(req, res) {
 });
 
 /* GET applies list */
-router.get('/applications', function(req, res, next) {
+router.get('/applications', function(req, res) {
     if (!req.query.access_token) {
         return res.send({
             result: false,
@@ -188,7 +188,7 @@ router.get('/applications', function(req, res, next) {
         });
     } else {
         var data = {
-            'access_token': req.query.access_token,
+            'access_token': req.query.access_token
         };
 
         // 신청자 목록 가져오는 프로세스
@@ -242,7 +242,7 @@ router.get('/applications', function(req, res, next) {
 
                         // contests id 갯수만큼 where절에 추가하기
                         var length = 0;
-                        back_data.forEach(function (val, index, arr) {
+                        back_data.forEach(function (val) {
                             if(length == 0) sql += val.app_contests_id;
                             sql += "," + val.app_contests_id;
                             length ++;
@@ -846,7 +846,7 @@ router.post('/:contest_id/:applies_id', function(req, res) {
 });
 
 /* DELETE cancel apply */
-router.delete('/:contest_id/:applies_id', function(req, res, next) {
+router.delete('/:contest_id/:applies_id', function(req, res) {
     if (!req.body.access_token) {
         return res.send({
             result: false,
