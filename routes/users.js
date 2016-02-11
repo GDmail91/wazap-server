@@ -75,20 +75,21 @@ router.post('/auth', function(req, res, next) {
     // login 정보 확인
     pool.getConnection(function (err, connection) {
         var select = [data.access_token];
-        var query = connection.query("SELECT * FROM Users WHERE kakao_access_token = ?", select, function (err, rows) {
+        connection.query("SELECT * FROM Users WHERE kakao_access_token = ?", select, function (err, rows) {
             if (err) {
                 connection.release();
                 return res.send({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err });
             }
             connection.release();
 
+            var dummy_data;
             if (rows.length != 0) {
-                var dummy_data = {
+                dummy_data = {
                     result: true,
                     msg: "인증에 성공했습니다."
                 };
             } else {
-                var dummy_data = {
+                dummy_data = {
                     result: false,
                     msg: "인증에 실패했습니다."
                 };
