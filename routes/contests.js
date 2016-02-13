@@ -23,68 +23,46 @@ router.get('/', function(req, res) {
         'start_id': req.query.start_id,
         'amount': req.query.amount
     };
-    console.log(data.amount);
     if(data.amount == undefined) data.amount = 3;
 
     // TODO 모집공고 목록 가져옴 (메인)
-    if(data.start_id == undefined) {
-        pool.getConnection(function (err, connection) {
-            // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
-            // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            var select = [data.amount];
-            connection.query("SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests ORDER BY postdate DESC LIMIT ?", select, function (err, rows) {
-                if (err) {
-                    connection.release();
-                    return res.send({result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: " + err});
-                }
-                connection.release();
+    pool.getConnection(function (err, connection) {
+        // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
+        // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
+        var select, sql;
+        if (data.start_id == undefined) {
+            select = [data.amount];
+            sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests ORDER BY postdate DESC LIMIT ?";
+        }
+        else {
+            select = [data.start_id, data.amount];
+            sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ?";
+        }
 
-                var dummy_data;
-                if (rows.length != 0) {
-                    dummy_data = {
-                        result: true,
-                        msg: "모집글 목록 가져옴",
-                        data: rows
-                    };
-                } else {
-                    dummy_data = {
-                        result: false,
-                        msg: "모집글 정보가 없습니다."
-                    };
-                }
-                res.statusCode = 200;
-                res.send(dummy_data);
-            });
-        });
-    } else {
-        pool.getConnection(function (err, connection) {
-            // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
-            // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            var select = [data.start_id, data.amount];
-            connection.query("SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id < ? ORDER BY postdate DESC LIMIT ?", select, function (err, rows) {
-                if (err) {
-                    connection.release();
-                    return res.send({result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: " + err});
-                }
+        connection.query(sql, select, function (err, rows) {
+            if (err) {
                 connection.release();
-                var dummy_data;
-                if (rows.length != 0) {
-                    dummy_data = {
-                        result: true,
-                        msg: "모집글 목록 가져옴",
-                        data: rows
-                    };
-                } else {
-                    dummy_data = {
-                        result: false,
-                        msg: "모집글 정보가 없습니다."
-                    };
-                }
-                res.statusCode = 200;
-                res.send(dummy_data);
-            });
+                return res.send({result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: " + err});
+            }
+            connection.release();
+
+            var dummy_data;
+            if (rows.length != 0) {
+                dummy_data = {
+                    result: true,
+                    msg: "모집글 목록 가져옴",
+                    data: rows
+                };
+            } else {
+                dummy_data = {
+                    result: false,
+                    msg: "모집글 정보가 없습니다."
+                };
+            }
+            res.statusCode = 200;
+            res.send(dummy_data);
         });
-    }
+    });
 });
 
 /* POST contest writing */
@@ -244,7 +222,7 @@ router.get('/applications', function(req, res) {
                         var length = 0;
                         back_data.forEach(function (val) {
                             if(length == 0) sql += val.app_contests_id;
-                            sql += "," + val.app_contests_id;
+                            else sql += "," + val.app_contests_id;
                             length ++;
                             if (length == back_data.length) {
                                 sql += ")";
