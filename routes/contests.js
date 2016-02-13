@@ -256,6 +256,51 @@ router.get('/applications', function(req, res) {
     }
 });
 
+/* GET users contests list */
+router.get('/list/:writer_id', function(req, res) {
+    var data = {
+        'access_token': req.query.access_token,
+        'writer_id': req.params.writer_id
+    };
+
+    // 유저별 공모전 목록 가져오는 프로세스
+    var async = require('async');
+    async.waterfall([
+        function(callback) {
+            // 게시글 권한 인증
+            pool.getConnection(function (err, connection) {
+                if (err) callback(err);
+                var select = [data.writer_id];
+                connection.query("SELECT * FROM Contests WHERE cont_writer = ?", select, function (err, rows) {
+                    if (err) {
+                        connection.release();
+                        return res.send({result: false, msg: "게시글 정보를 가져오는데 실패했습니다. 원인: " + err});
+                    }
+                    connection.release();
+
+                    if (rows.length != 0) {
+                        callback(null, rows);
+                    } else {
+                        callback({result: false, msg: '게시글이 없습니다.'});
+                    }
+                });
+            });
+        }
+    ],
+    function(err, result) {
+        // 취소 결과 출력
+        if (err) return res.send(err);
+        var dummy_data = {
+            result: true,
+            msg: "모집한 목록 가져옴",
+            data: result
+        };
+        res.statusCode = 200;
+        res.send(dummy_data);
+    });
+
+});
+
 /* GET contests detail view */
 router.get('/:contest_id', function(req, res) {
     var data = {
@@ -551,14 +596,14 @@ router.post('/:contest_id/join', function(req, res) {
                             connection.release();
 
                             if (rows.length != 0) {
-                                callback(null, back_data);
+                                callback(null, back_data, rows[0]);
                             } else {
                                 callback({result: false, msg: '게시글이 존재하지 않습니다.'});
                             }
                         });
                     });
                 },
-                function(back_data, callback) {
+                function(back_data, contests_info, callback) {
                     // 중복 신청 방지
                     pool.getConnection(function (err, connection) {
                         if (err) callback(err);
@@ -571,14 +616,14 @@ router.post('/:contest_id/join', function(req, res) {
                             connection.release();
 
                             if (rows.length == 0) {
-                                callback(null, back_data);
+                                callback(null, back_data, contests_info);
                             } else {
                                 callback({result: false, msg: '이미 신청한 공고입니다.'});
                             }
                         });
                     });
                 },
-                function(back_data, callback) {
+                function(back_data, contests_info, callback) {
                     // DB에 신청 데이터 저장
                     pool.getConnection(function (err, connection) {
                         if (err) {
@@ -599,11 +644,38 @@ router.post('/:contest_id/join', function(req, res) {
                                 return callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
                             }
                             connection.release();
+                            callback(null, contests_info);
+                        });
+                    });
+                },
+                function(contests_info, callback) {
+                    // 게시자에게 알림
+                    // Alram DB에 알림 저장
+                    pool.getConnection(function (err, connection) {
+                        if (err) {
+                            connection.release();
+                            return callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                        }
+
+                        var insert = ['Alram',
+                            contests_info.cont_writer,
+                            '신청자가 있습니다.',
+                            '/contests/list/'+contests_info.cont_writer];
+
+                        connection.query("INSERT INTO ?? SET " +
+                            "`alram_users_id` = ?, " +
+                            "`msg` = ?, " +
+                            "`msg_url` = ?, " +
+                            "`alramdate` = NOW()", insert, function (err) {
+                            if (err) {
+                                connection.release();
+                                return callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                            }
+                            connection.release();
                             callback(null);
                         });
                     });
                 }
-            // TODO 알림
             ],
             function(err) {
                 // 게시 결과 출력
@@ -779,14 +851,14 @@ router.post('/:contest_id/:applies_id', function(req, res) {
                             }
 
                             if (rows.length != 0) {
-                                callback(null, rows[0].is_check);
+                                callback(null, rows[0].is_check, rows[0]);
                             } else {
                                 callback({result: false, msg: '신청한 공고가 없습니다.'});
                             }
                         });
                     });
                 },
-                function(back_data, callback) {
+                function(back_data, applier_info, callback) {
                     // 신청서 승낙/거절
                     pool.getConnection(function (err, connection) {
                         if (err) callback(err);
@@ -801,10 +873,39 @@ router.post('/:contest_id/:applies_id', function(req, res) {
                             connection.release();
 
                             if (rows.length != 0) {
-                                callback(null, rows);
+                                callback(null, rows, applier_info);
                             } else {
                                 callback({result: false, msg: '승낙할 신청서가 없습니다.'});
                             }
+                        });
+                    });
+                },
+                function(rows, applier_info, callback) {
+                    // 신청자에게 알림
+                    // Alram DB에 알림 저장
+                    pool.getConnection(function (err, connection) {
+                        if (err) {
+                            connection.release();
+                            return callback({result: false, msg: '알림 처리중 오류가 발생했습니다. 원인: ' + err});
+                        }
+
+                        console.log(applier_info);
+                        var insert = ['Alram',
+                            applier_info.app_users_id,
+                            '멤버 추가되었습니다.',
+                            '/contests/applications'];
+console.log(insert);
+                        connection.query("INSERT INTO ?? SET " +
+                            "`alram_users_id` = ?, " +
+                            "`msg` = ?, " +
+                            "`msg_url` = ?, " +
+                            "`alramdate` = NOW()", insert, function (err) {
+                            if (err) {
+                                connection.release();
+                                return callback({result: false, msg: '알림 처리중 오류가 발생했습니다. 원인: ' + err});
+                            }
+                            connection.release();
+                            callback(null, rows);
                         });
                     });
                 }
@@ -824,7 +925,7 @@ router.post('/:contest_id/:applies_id', function(req, res) {
 });
 
 /* DELETE cancel apply */
-router.delete('/:contest_id/:applies_id', function(req, res) {
+router.delete('/:contest_id/join', function(req, res) {
     if (!req.body.access_token) {
         return res.send({
             result: false,
@@ -864,8 +965,8 @@ router.delete('/:contest_id/:applies_id', function(req, res) {
                     // 신청서 정보 확인
                     pool.getConnection(function (err, connection) {
                         if (err) callback(err);
-                        var select = ['Applies', data.applies_id, data.contest_id, back_data.users_id];
-                        connection.query("SELECT * FROM ?? WHERE applies_id = ? AND app_contests_id = ? AND app_users_id = ?", select, function (err, rows) {
+                        var select = ['Applies', data.contest_id, back_data.users_id];
+                        connection.query("SELECT * FROM ?? WHERE app_contests_id = ? AND app_users_id = ?", select, function (err, rows) {
                             if (err) {
                                 connection.release();
                                 return callback({result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err});
@@ -887,8 +988,8 @@ router.delete('/:contest_id/:applies_id', function(req, res) {
                             return callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
                         }
 
-                        var select = ['Applies', data.applies_id];
-                        connection.query("DELETE FROM ?? WHERE applies_id = ?", select, function (err) {
+                        var select = ['Applies', data.contest_id, back_data.users_id];
+                        connection.query("DELETE FROM ?? WHERE app_contests_id = ? AND app_users_id = ?", select, function (err) {
                             if (err) {
                                 connection.release();
                                 return callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});

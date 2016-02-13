@@ -85,14 +85,11 @@ router.get('/', function(req, res, next) {
                     var contests_list=  [];
                     if (data.start_id == undefined) {
                         contests_list = back_data;
-                        console.log(contests_list);
                     }
                     else {
                         back_data.forEach(function (val, index) {
-                            console.log(val);
                             if (val.cli_contests_id <= data.start_id) {
                                 contests_list[index] = { cli_contests_id: val.cli_contests_id };
-                                console.log(contests_list);
                             }
                         });
                     }
@@ -106,11 +103,9 @@ router.get('/', function(req, res, next) {
                         if(length == 0) sql += val.cli_contests_id;
                         else sql += "," + val.cli_contests_id;
                         length ++;
-                        console.log('length: '+length+' row length: '+contests_list.length+' amount: '+data.amount);
                         if (length == contests_list.length) {
                             sql += ") ORDER BY postdate DESC LIMIT ?";
 
-                            console.log(sql);
                             connection.query(sql, select, function (err, rows) {
                                 if (err) {
                                     connection.release();
@@ -202,7 +197,7 @@ router.post('/:contest_id', function(req, res, next) {
                 result : true,
                 msg : "찜 했습니다."
             };
-            res.header(200);
+            res.statusCode = 200;
             res.send(dummy_data);
         });
     }
@@ -271,7 +266,7 @@ router.delete('/:contest_id', function(req, res, next) {
                 result : true,
                 msg : "찜 목록 삭제."
             };
-            res.header(200);
+            res.statusCode = 200;
             res.send(dummy_data);
         });
     }
