@@ -3,17 +3,7 @@
  ********************/
 
 var express = require('express');
-var credentials = require('../credentials');
-var mysql = require('mysql');
-var pool = mysql.createPool({
-    host    : credentials.mysql.host,
-    port : credentials.mysql.port,
-    user : credentials.mysql.user,
-    password : credentials.mysql.password,
-    database: credentials.mysql.database,
-    connectionLimit: 20,
-    waitForConnections: false
-});
+var users_model = require('../models/users_model');
 
 var router = express.Router();
 /*
@@ -35,33 +25,10 @@ router.post('/reg', function(req, res, next) {
         'exp': req.body.exp
     };
     if(data.access_token) {
-        // TODO user 정보 수정
-        pool.getConnection(function (err, connection) {
-            if (err) throw (err);
-            var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp, data.access_token];
-            var query = connection.query('UPDATE users SET ' +
-                    'kakao_id = ??, ' +
-                    'username = ??, ' +
-                    'school = ??, ' +
-                    'age = ??, ' +
-                    'major = ??, ' +
-                    'locate = ??, ' +
-                    'introduce = ??, ' +
-                    'exp = ?? WHERE kakao_access_token = ?', insert, function (err, rows) {
-                if (err) {
-                    connection.release();
-                    return res.send({ result: false, msg: "정보 수정에 실패했습니다. 원인: "+err });
-                }
-                connection.release();
-
-                var dummy_data = {
-                    result : true,
-                    msg : "정보 수정에 성공했습니다."
-                };
-                res.statusCode = 200;
-                return res.send(dummy_data);
-            });
-        });
+        // user 정보 수정
+        var result = users_model.update_info(data);
+        res.statusCode = 200;
+        return res.send(result);
     }
     res.send({ result: false, msg: "정보 수정에 실패했습니다. 원인: 토큰 데이터가 없습니다" });
 });
@@ -73,31 +40,10 @@ router.post('/auth', function(req, res, next) {
     };
 
     // login 정보 확인
-    pool.getConnection(function (err, connection) {
-        var select = [data.access_token];
-        connection.query("SELECT * FROM Users WHERE kakao_access_token = ?", select, function (err, rows) {
-            if (err) {
-                connection.release();
-                return res.send({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err });
-            }
-            connection.release();
+    var result = users_model.auth_user(data);
+    res.statusCode = 200;
+    res.send(result);
 
-            var dummy_data;
-            if (rows.length != 0) {
-                dummy_data = {
-                    result: true,
-                    msg: "인증에 성공했습니다."
-                };
-            } else {
-                dummy_data = {
-                    result: false,
-                    msg: "인증에 실패했습니다."
-                };
-            }
-            res.statusCode = 200;
-            res.send(dummy_data);
-        });
-    });
 /*
     // 실서버 사용시
     // Session 정보 세팅
@@ -141,32 +87,9 @@ router.get('/:user_id', function(req, res, next) {
     };
 
     // 사용자 정보 가져옴
-    pool.getConnection(function (err, connection) {
-        var select = [data.user_id];
-
-        var query = connection.query("SELECT username, major, school, locate, kakao_id, introduce, exp, age FROM Users WHERE users_id = ?", select, function (err, rows) {
-            if (err) {
-                connection.release();
-                return res.send({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err });
-            }
-            connection.release();
-
-            if (rows.length != 0) {
-                var dummy_data = {
-                    result: true,
-                    msg: "사용자 정보 가져옴",
-                    data: rows
-                };
-            } else {
-                var dummy_data = {
-                    result: false,
-                    msg: "사용자 정보가 없습니다."
-                };
-            }
-            res.statusCode = 200;
-            res.send(dummy_data);
-        });
-    });
+    var result = users_model.get_user(data);
+    res.statusCode = 200;
+    res.send(result);
 });
 
 module.exports = router;
