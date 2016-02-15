@@ -37,7 +37,7 @@ router.get('/', function(req, res, next) {
             // kakao 에 사용자 토큰 요청
             var req_data = {
                 'grant_type': 'authorization_code',
-                'client_id': '0a02b5ed836ae2f73a4d8bcb89a0aca1', // app_key on kakao web
+                'client_id': credentials.kakao_rest_key, // app_key on kakao web
                 'redirect_uri': credentials.api_server + '/kakao_oauth/get_user',
                 'code': data.authorize_code
             };
