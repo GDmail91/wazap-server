@@ -85,15 +85,15 @@ router.get('/', function(req, res, next) {
                         back_data.properties.thumbnail_image];
                     console.log(insert);
                     var query = connection.query('INSERT INTO ?? SET ' +
-                        'kakao_access_token = ??, ' +
-                        'kakao_token_type = ??, ' +
-                        'kakao_refresh_token = ??, ' +
-                        'kakao_expires_in = ?, ' +
-                        'kakao_scope = ??, ' +
-                        'users_id = ?, ' +
-                        'username = ?, ' +
-                        'profile_img = ??, ' +
-                        'thumb_img = ??', insert, function (err, rows) {
+                        '`kakao_access_token` = ??, ' +
+                        '`kakao_token_type` = ??, ' +
+                        '`kakao_refresh_token` = ??, ' +
+                        '`kakao_expires_in` = ?, ' +
+                        '`kakao_scope` = ??, ' +
+                        '`users_id` = ?, ' +
+                        '`username` = ?, ' +
+                        '`profile_img` = ?, ' +
+                        '`thumb_img` = ?', insert, function (err, rows) {
                         if (err) {
                             connection.release();
                             return callback(err);
