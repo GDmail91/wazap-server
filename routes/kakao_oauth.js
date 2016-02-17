@@ -70,6 +70,7 @@ router.get('/', function(req, res, next) {
 
         },
         function(back_data, callback) {
+            var querystring = require("querystring");
             // DB에 사용자 데이터 저장
             if (back_data.properties) {
                 pool.getConnection(function (err, connection) {
@@ -83,17 +84,18 @@ router.get('/', function(req, res, next) {
                         back_data.properties.nickname,
                         back_data.properties.profile_image,
                         back_data.properties.thumbnail_image];
+                    insert = querystring.stringify(insert);
                     console.log(insert);
                     var query = connection.query('INSERT INTO ?? SET ' +
-                        '`kakao_access_token` = ??, ' +
-                        '`kakao_token_type` = ??, ' +
-                        '`kakao_refresh_token` = ??, ' +
-                        '`kakao_expires_in` = ?, ' +
-                        '`kakao_scope` = ??, ' +
-                        '`users_id` = ?, ' +
-                        '`username` = ?, ' +
-                        '`profile_img` = ?, ' +
-                        '`thumb_img` = ?', insert, function (err, rows) {
+                        'kakao_access_token = ??, ' +
+                        'kakao_token_type = ??, ' +
+                        'kakao_refresh_token = ??, ' +
+                        'kakao_expires_in = ?, ' +
+                        'kakao_scope = ??, ' +
+                        'users_id = ?, ' +
+                        'username = ??, ' +
+                        'profile_img = ??, ' +
+                        'thumb_img = ??', insert, function (err, rows) {
                         if (err) {
                             connection.release();
                             return callback(err);
