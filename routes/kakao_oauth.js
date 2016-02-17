@@ -57,7 +57,7 @@ router.get('/', function(req, res, next) {
             request.get({
                 url: 'https://kapi.kakao.com/v1/user/me',
                 headers: {
-                    'Authorization': 'Bearer ' + code
+                    'Authorization': 'Bearer ' + body.access_token
                 }
             }, function (err, httpResponse, body) {
                 console.log('사용자 정보 요청: '+body);
