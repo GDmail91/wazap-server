@@ -95,7 +95,7 @@ router.get('/', function(req, res, next) {
                         'thumb_img = ??', insert, function (err, rows) {
                         if (err) {
                             connection.release();
-                            callback(err);
+                            return callback(err);
                         }
                         connection.release();
                         callback(null, back_data);
@@ -123,6 +123,7 @@ router.get('/', function(req, res, next) {
         }
     ],
     function(err, results) {
+        console.log(err);
         if (err) return res.send(err);
         // 처리 완료후 사용자 토큰 반환
         var dummy_data = {
