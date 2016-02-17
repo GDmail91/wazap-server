@@ -41,13 +41,13 @@ router.get('/', function(req, res, next) {
                 'redirect_uri': credentials.api_server + '/kakao_oauth/get_user',
                 'code': data.authorize_code
             };
-            request.get({
+            request.post({
                 url: 'https://kauth.kakao.com/oauth/token',
                 form: req_data
             }, function (err, httpResponse, body) {
+                console.log('사용자 토큰 생성: '+body);
                 var body = JSON.parse(body);
-
-                if (body.error) return callback({result: false, msg: '잘못된 접근입니다.'});
+                if (body.error) return callback({result: false, msg: body.error_description});
                 callback(null, req_data.code, body);
             });
 
@@ -60,9 +60,9 @@ router.get('/', function(req, res, next) {
                     'Authorization': 'Bearer ' + code
                 }
             }, function (err, httpResponse, body) {
+                console.log('사용자 정보 요청: '+body);
                 var body = JSON.parse(body);
-
-                if (body.error) return callback({result: false, msg: '잘못된 접근입니다.'});
+                if (body.error) return callback({result: false, msg: body.error_description});
                 back_data.user_id = body.id;
                 back_data.properties = body.properties;
                 callback(null, back_data);
