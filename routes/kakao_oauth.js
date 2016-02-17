@@ -82,8 +82,8 @@ router.get('/', function(req, res, next) {
                         back_data.scope,
                         back_data.user_id,
                         back_data.properties.nickname,
-                        querystring.stringify(back_data.properties.profile_image),
-                        querystring.stringify(back_data.properties.thumbnail_image)];
+                        encodeURIComponent(back_data.properties.profile_image),
+                        encodeURIComponent(back_data.properties.thumbnail_image)];
                     console.log(insert);
                     var query = connection.query('INSERT INTO ?? SET ' +
                         'kakao_access_token = ??, ' +
