@@ -86,15 +86,15 @@ router.get('/', function(req, res, next) {
                         encodeURIComponent(back_data.properties.thumbnail_image)];
                     console.log(insert);
                     var query = connection.query('INSERT INTO ?? SET ' +
-                        'kakao_access_token = ??, ' +
-                        'kakao_token_type = ??, ' +
-                        'kakao_refresh_token = ??, ' +
+                        'kakao_access_token = ?, ' +
+                        'kakao_token_type = ?, ' +
+                        'kakao_refresh_token = ?, ' +
                         'kakao_expires_in = ?, ' +
-                        'kakao_scope = ??, ' +
+                        'kakao_scope = ?, ' +
                         'users_id = ?, ' +
-                        'username = ??, ' +
-                        'profile_img = ??, ' +
-                        'thumb_img = ??', insert, function (err, rows) {
+                        'username = ?, ' +
+                        'profile_img = ?, ' +
+                        'thumb_img = ?', insert, function (err, rows) {
                         if (err) {
                             connection.release();
                             return callback(err);
@@ -137,24 +137,80 @@ router.get('/', function(req, res, next) {
         res.send(dummy_data);
     });
 });
-/*
 
-/!* POST get users information from kakao *!/
-router.post('/get_user', function(req, res, next) {
+/* POST get users information from kakao */
+router.post('/users', function(req, res, next) {
     var data = {
         "access_token": req.body.access_token,
         "token_type": req.body.token_type,
         "refresh_token": req.body.refresh_token,
         "expires_in": req.body.expires_in,
-        "scope": req.body.scope
+        "scope": req.body.scope,
+        "users_id": req.body.users_id,
+        "username": req.body.nickname,
+        "profile_image": req.body.profile_image,
+        "thumbnail_image": req.body.thumbnail_image
     };
 
-    // TODO DB에 사용자 데이터 저장
+    pool.getConnection(function (err, connection) {
+        var insert = ['Users',
+            data.access_token,
+            data.token_type,
+            data.refresh_token,
+            data.expires_in,
+            data.scope,
+            data.users_id,
+            data.username,
+            encodeURIComponent(data.profile_image),
+            encodeURIComponent(data.thumbnail_image),
+            data.access_token,
+            data.token_type,
+            data.refresh_token,
+            data.expires_in,
+            data.scope,
+            data.username,
+            encodeURIComponent(data.profile_image),
+            encodeURIComponent(data.thumbnail_image)];
+        console.log(insert);
+        var query = connection.query('INSERT INTO ?? SET ' +
+            'kakao_access_token = ?, ' +
+            'kakao_token_type = ?, ' +
+            'kakao_refresh_token = ?, ' +
+            'kakao_expires_in = ?, ' +
+            'kakao_scope = ?, ' +
+            'users_id = ?, ' +
+            'username = ?, ' +
+            'profile_img = ?, ' +
+            'thumb_img = ? ' +
+            'ON DUPLICATE KEY UPDATE ' +
+            'kakao_access_token = ?,' +
+            'kakao_token_type = ?, ' +
+            'kakao_refresh_token = ?, ' +
+            'kakao_expires_in = ?, ' +
+            'kakao_scope = ?, ' +
+            'username = ?, ' +
+            'profile_img = ?, ' +
+            'thumb_img = ? ', insert, function (err, rows) {
+            var dummy_data;
 
-    res.statusCode(200);
-    res.send(dummy_data);
+            if (err) {
+                dummy_data = {
+                    result: false,
+                    msg: "데이터베이스 저장 실패. 원인: "+ err
+                };
+            } else {
+                dummy_data = {
+                    result: true,
+                    msg: "사용자 등록 완료"
+                };
+            }
+            connection.release();
+
+            res.statusCode = 200;
+            res.send(dummy_data);
+        });
+    });
 });
-*/
 
 
 module.exports = router;
