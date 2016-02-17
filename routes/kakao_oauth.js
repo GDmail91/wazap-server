@@ -91,8 +91,8 @@ router.get('/', function(req, res, next) {
                         'kakao_expires_in = ?, ' +
                         'kakao_scope = ??, ' +
                         'user_id = ?, ' +
-                        'profile_img = ??, ' +
-                        'thumb_img = ??', insert, function (err, rows) {
+                        'profile_img = ?, ' +
+                        'thumb_img = ?', insert, function (err, rows) {
                         if (err) {
                             connection.release();
                             return callback(err);
