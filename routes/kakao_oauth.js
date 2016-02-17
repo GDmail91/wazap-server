@@ -90,9 +90,10 @@ router.get('/', function(req, res, next) {
                         'kakao_refresh_token = ??, ' +
                         'kakao_expires_in = ?, ' +
                         'kakao_scope = ??, ' +
-                        'user_id = ?, ' +
-                        'profile_img = ?, ' +
-                        'thumb_img = ?', insert, function (err, rows) {
+                        'users_id = ?, ' +
+                        'username = ?, ' +
+                        'profile_img = ??, ' +
+                        'thumb_img = ??', insert, function (err, rows) {
                         if (err) {
                             connection.release();
                             return callback(err);
