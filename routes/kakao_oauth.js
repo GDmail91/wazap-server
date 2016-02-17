@@ -83,13 +83,14 @@ router.get('/', function(req, res, next) {
                         back_data.properties.nickname,
                         back_data.properties.profile_image,
                         back_data.properties.thumbnail_image];
+                    console.log(insert);
                     var query = connection.query('INSERT INTO ?? SET ' +
                         'kakao_access_token = ??, ' +
                         'kakao_token_type = ??, ' +
                         'kakao_refresh_token = ??, ' +
-                        'kakao_expires_in = ??, ' +
+                        'kakao_expires_in = ?, ' +
                         'kakao_scope = ??, ' +
-                        'user_id = ??, ' +
+                        'user_id = ?, ' +
                         'profile_img = ??, ' +
                         'thumb_img = ??', insert, function (err, rows) {
                         if (err) {
