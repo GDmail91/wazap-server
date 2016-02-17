@@ -38,7 +38,7 @@ router.get('/', function(req, res, next) {
             var req_data = {
                 'grant_type': 'authorization_code',
                 'client_id': credentials.kakao_rest_key, // app_key on kakao web
-                'redirect_uri': credentials.domain_server + '/kakao_oauth/get_user',
+                'redirect_uri': credentials.domain_server + '/kakao_oauth',
                 'code': data.authorize_code
             };
             request.post({
