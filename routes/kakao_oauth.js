@@ -70,7 +70,6 @@ router.get('/', function(req, res, next) {
 
         },
         function(back_data, callback) {
-            var querystring = require("querystring");
             // DB에 사용자 데이터 저장
             if (back_data.properties) {
                 pool.getConnection(function (err, connection) {
