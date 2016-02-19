@@ -5,7 +5,7 @@ var clips = require('./routes/clips');
 var alrams = require('./routes/alrams');
 var search = require('./routes/search');
 var blocks = require('./routes/blocks');
-var kakao_oauth = require('./routes/facebook_oauth');
+var facebook_oauth = require('./routes/facebook_oauth');
 
 module.exports = function(app){
     app.use('/', routes);
@@ -15,6 +15,6 @@ module.exports = function(app){
     app.use('/alrams', alrams);
     app.use('/search', search);
     app.use('/blocks', blocks);
-    app.use('/kakao_oauth', kakao_oauth);
+    app.use('/facebook_oauth', facebook_oauth);
 
 };
