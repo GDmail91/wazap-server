@@ -29,16 +29,18 @@ router.get('/', function(req, res) {
         async.waterfall([
             function(callback) {
                 // 사용자 인증
-                var result = users_model.get_user_id(data);
-                if (result.result) return callback(null, result.data);
-                else callback(result);
+                users_model.get_user_id(data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
             },
             function(back_data, callback) {
                 // 알림 목록 가져옴
                 data.users_id = back_data.users_id;
-                var result = alrams_model.get_alram_list(data);
-                if (result.result) return callback(null, result.data);
-                else callback(result);
+                alrams_model.get_alram_list(data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
             }
             ], function(err, result) {
             // 알림 목록 출력

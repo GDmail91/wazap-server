@@ -14,8 +14,9 @@ var contests_model = {
     /**
      * Contests recently list (MAIN)
      * @param data (JSON) : start_id, amount
+     * @param callback (Function)
      */
-    get_contests_list : function (data) {
+    get_contests_list : function (data, callback) {
         pool.getConnection(function (err, connection) {
             // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
             // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
@@ -32,7 +33,7 @@ var contests_model = {
             connection.query(sql, select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return {result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: " + err};
+                    return callback({result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: " + err});
                 }
                 connection.release();
 
@@ -49,7 +50,7 @@ var contests_model = {
                         msg: "모집글 정보가 없습니다."
                     };
                 }
-                return dummy_data;
+                return callback(dummy_data);
             });
         });
     },
@@ -57,13 +58,14 @@ var contests_model = {
     /**
      * Post contest recruit infomation
      * @param data (JSON) : users_id, title, recruitment, hosts, categories, period, cover, positions
+     * @param callback (Function)
      */
-    set_contests_recruit : function (data) {
+    set_contests_recruit : function (data, callback) {
         // DB에 모집 데이터 저장
         pool.getConnection(function (err, connection) {
             if (err) {
                 connection.release();
-                return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
 
             var insert = ['Contests',
@@ -87,10 +89,10 @@ var contests_model = {
                 "`postdate` = NOW()", insert, function (err) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
                 }
                 connection.release();
-                return { result: true, msg: '저장 성공'};
+                return callback({ result: true, msg: '저장 성공'});
             });
         });
     },
@@ -98,22 +100,23 @@ var contests_model = {
     /**
      * Get application informations
      * @param data (JSON) users_id
+     * @param callback (Function)
      */
-    get_application_info : function (data) {
+    get_application_info : function (data, callback) {
         // 신청서 정보 확인
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "에러발생. 원인: "+err };
+            if (err) return callback({ result: false, msg: "에러발생. 원인: "+err });
             var select = ['Applies', data.users_id];
             connection.query("SELECT * FROM ?? WHERE app_users_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err };
+                    return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
                 }
 
                 if (rows.length != 0) {
-                    return { result:true, msg: "신청서 정보 목록", data: rows };
+                    return callback({ result:true, msg: "신청서 정보 목록", data: rows });
                 } else {
-                    return { result: false, msg: '신청한 공고가 없습니다.' };
+                    return callback({ result: false, msg: '신청한 공고가 없습니다.' });
                 }
             });
         });
@@ -122,8 +125,9 @@ var contests_model = {
     /**
      * Get contest infomation
      * @param data (JSON) : contests_id (Array)
+     * @param callback (Function)
      */
-    get_contest_info : function(data) {
+    get_contest_info : function(data, callback) {
         // 모집글 정보 가져옴
         pool.getConnection(function (err, connection) {
             // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
@@ -143,11 +147,11 @@ var contests_model = {
                     connection.query(sql, function (err, rows) {
                         if (err) {
                             connection.release();
-                            return { result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: "+err };
+                            return callback({ result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: "+err });
                         }
                         connection.release();
 
-                        return { result: true, msg: "모집글 정보를 가져왔습니다.", data: rows };
+                        return callback({ result: true, msg: "모집글 정보를 가져왔습니다.", data: rows });
                     });
                 }
             });
@@ -157,23 +161,24 @@ var contests_model = {
     /**
      * Get contests list by writer id
      * @param data (JSON) : writer_id
+     * @param callback (Function)
      */
-    get_contests_list_by_writer : function(data) {
+    get_contests_list_by_writer : function(data, callback) {
         // 해당 유저의 목록 가져옴
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "에러발생. 원인: "+err };
+            if (err) return callback({ result: false, msg: "에러발생. 원인: "+err });
             var select = [data.writer_id];
             connection.query("SELECT * FROM Contests WHERE cont_writer = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "게시글 정보를 가져오는데 실패했습니다. 원인: " + err };
+                    return callback({ result: false, msg: "게시글 정보를 가져오는데 실패했습니다. 원인: " + err });
                 }
                 connection.release();
 
                 if (rows.length != 0) {
-                    return { result: true, msg: "게시글 정보 가져옴", data: rows };
+                    return callback({ result: true, msg: "게시글 정보 가져옴", data: rows });
                 } else {
-                    return { result: false, msg: '게시글이 없습니다.' };
+                    return callback({ result: false, msg: '게시글이 없습니다.' });
                 }
             });
         });
@@ -182,8 +187,9 @@ var contests_model = {
     /**
      * Get contest by writer
      * @param data (JSON) : contests_id
+     * @param callback (Function)
      */
-    get_contest_by_writer : function(data) {
+    get_contest_by_writer : function(data, callback) {
         // 모집글 정보 가져옴
         pool.getConnection(function (err, connection) {
             var select = [data.contest_id];
@@ -193,7 +199,7 @@ var contests_model = {
             connection.query("SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: "+err };
+                    return callback({ result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: "+err });
                 }
                 connection.release();
 
@@ -210,7 +216,7 @@ var contests_model = {
                         msg: "모집글 정보가 없습니다."
                     };
                 }
-                return dummy_data;
+                return callback(dummy_data);
             });
         });
     },
@@ -218,23 +224,24 @@ var contests_model = {
     /**
      * Authentication of contest
      * @param data (JSON) : contest_id, users_id
+     * @param callback (Function)
      */
-    is_contest_writer : function(data) {
+    is_contest_writer : function(data, callback) {
         // 게시글 권한 인증
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "에러 발생. 원인: "+err };
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = [data.contest_id, data.users_id];
             connection.query("SELECT * FROM Contests WHERE contests_id = ? AND cont_writer = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "게시글 정보를 가져오는데 실패했습니다. 원인: " + err };
+                    return callback({ result: false, msg: "게시글 정보를 가져오는데 실패했습니다. 원인: " + err });
                 }
                 connection.release();
 
                 if (rows.length != 0) {
-                    return { result: true, msg: "게시글에 대한 권한 확인"};
+                    return callback({ result: true, msg: "게시글에 대한 권한 확인"});
                 } else {
-                    return { result: false, msg: '수정 권한이 없습니다.' };
+                    return callback({ result: false, msg: '수정 권한이 없습니다.' });
                 }
             });
         });
@@ -243,13 +250,14 @@ var contests_model = {
     /**
      * Edit contest infomation
      * @param data (JSON) : title, recrument, hosts, categories, period, cover, positions, contest_id
+     * @param callback (Function)
      */
-    edit_contests_info : function(data) {
+    edit_contests_info : function(data, callback) {
         // DB에 모집 데이터 저장
         pool.getConnection(function (err, connection) {
             if (err) {
                 connection.release();
-                return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
 
             var insert = ['Contests',
@@ -272,10 +280,10 @@ var contests_model = {
                 "WHERE contests_id = ?", insert, function (err) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
                 }
                 connection.release();
-                return { result: true, msg: '수정하기 완료.' };
+                return callback({ result: true, msg: '수정하기 완료.' });
             });
         });
     },
@@ -283,23 +291,24 @@ var contests_model = {
     /**
      * Remove from contests table
      * @param data (JSON) : contest_id
+     * @param callback (Function)
      */
-    remove_contest : function(data) {
+    remove_contest : function(data, callback) {
         // DB에서 글 삭제
         pool.getConnection(function (err, connection) {
             if (err) {
                 connection.release();
-                return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
 
             var select = ['Contests', data.contest_id];
             connection.query("DELETE FROM ?? WHERE contests_id = ?", select, function (err) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
                 }
                 connection.release();
-                return { result: true, msg: '게시글 삭제 완료' };
+                return callback({ result: true, msg: '게시글 삭제 완료' });
             });
         });
     },
@@ -307,22 +316,23 @@ var contests_model = {
     /**
      * Check duplicate apply
      * @param data (JSON) : contest_id, users_id
+     * @param callback (Function)
      */
-    check_duplication : function(data) {
+    check_duplication : function(data, callback) {
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "에러 발생. 원인: "+err };
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = ['Applies', data.contest_id, data.users_id];
             connection.query("SELECT * FROM ?? WHERE app_contests_id = ? AND app_users_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err };
+                    return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
                 }
                 connection.release();
 
                 if (rows.length == 0) {
-                    return { result: true, msg: "중복값 없음" };
+                    return callback({ result: true, msg: "중복값 없음" });
                 } else {
-                    return { result: false, msg: '이미 신청한 공고입니다.' };
+                    return callback({ result: false, msg: '이미 신청한 공고입니다.' });
                 }
             });
         });
@@ -331,13 +341,14 @@ var contests_model = {
     /**
      * Apply on contest
      * @param data (JSON) : contest_id, users_id
+     * @param callback (Function)
      */
-    apply_contest : function(data) {
+    apply_contest : function(data, callback) {
         // DB에 신청 데이터 저장
         pool.getConnection(function (err, connection) {
             if (err) {
                 connection.release();
-                return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
 
             var insert = ['Applies', data.contest_id, data.users_id];
@@ -348,10 +359,10 @@ var contests_model = {
                 "`postdate` = NOW()", insert, function (err) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
                 }
                 connection.release();
-                return { result: true, msg: "신청 완료" };
+                return callback({ result: true, msg: "신청 완료" });
             });
         });
     },
@@ -359,23 +370,24 @@ var contests_model = {
     /**
      * Get applies list
      * @param data (JSON) : contest_id, users_id
+     * @param callback (Function)
      */
-    get_apply_list : function(data) {
+    get_apply_list : function(data, callback) {
         // 신청서 목록 가져옴
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "에러 발생 원인: "+err };
+            if (err) return callback({ result: false, msg: "에러 발생 원인: "+err });
             var select = ['Applies', data.contest_id, data.users_id];
             connection.query("SELECT applies_id, app_users_id, postdate, is_check FROM ?? WHERE app_contests_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err };
+                    return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
                 }
                 connection.release();
 
                 if (rows.length != 0) {
-                    return { result: true, msg: "신청서 목록 가져옴", data: rows };
+                    return callback({ result: true, msg: "신청서 목록 가져옴", data: rows });
                 } else {
-                    return { result: false, msg: '신청한 공고가 없습니다.' };
+                    return callback({ result: false, msg: '신청한 공고가 없습니다.' });
                 }
             });
         });
@@ -384,22 +396,23 @@ var contests_model = {
     /**
      * Get apply infomation
      * @param data (JSON) : contest_id, users_id
+     * @param callback (Function)
      */
-    get_apply_info : function(data) {
+    get_apply_info : function(data, callback) {
         // 신청서 정보 가져옴
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "에러 발생. 원인: "+err };
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = ['Applies', data.contest_id, data.users_id];
             connection.query("SELECT applies_id, app_users_id, postdate, is_check FROM ?? WHERE app_contests_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err };
+                    return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
                 }
 
                 if (rows.length != 0) {
-                    return { result: true, msg: "신청서 정보 가져옴", data: rows[0] };
+                    return callback({ result: true, msg: "신청서 정보 가져옴", data: rows[0] });
                 } else {
-                    return { result: false, msg: '신청한 공고가 없습니다.' };
+                    return callback({ result: false, msg: '신청한 공고가 없습니다.' });
                 }
             });
         });
@@ -408,25 +421,26 @@ var contests_model = {
     /**
      * Accept or Defuse apply
      * @param data (JSON) : is_check, applies_id
+     * @param callback (Function)
      */
-    accept_apply : function(data) {
+    accept_apply : function(data, callback) {
         // 신청서 승낙/거절
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "에러 발생. 원인: " +err };
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: " +err });
             var select = ['Applies', !data.is_check, data.applies_id];
             connection.query("UPDATE ?? SET " +
                 "is_check = ? " +
                 "WHERE applies_id = ? ", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "승낙하는데 실패했습니다. 원인: " + err };
+                    return callback({ result: false, msg: "승낙하는데 실패했습니다. 원인: " + err });
                 }
                 connection.release();
 
                 if (rows.length != 0) {
-                    return { result: true, msg: "승낙 성공", data: rows };
+                    return callback({ result: true, msg: "승낙 성공", data: rows });
                 } else {
-                    return { result: false, msg: '승낙할 신청서가 없습니다. '};
+                    return callback({ result: false, msg: '승낙할 신청서가 없습니다. '});
                 }
             });
         });
@@ -435,23 +449,24 @@ var contests_model = {
     /**
      * Delete from apply
      * @param data (JSON) : contest_id, users_id
+     * @param callback (Function)
      */
-    delete_from_apply : function(data) {
+    delete_from_apply : function(data, callback) {
         // DB에서 신청서 삭제
         pool.getConnection(function (err, connection) {
             if (err) {
                 connection.release();
-                return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
 
             var select = ['Applies', data.contest_id, data.users_id];
             connection.query("DELETE FROM ?? WHERE app_contests_id = ? AND app_users_id = ?", select, function (err) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err };
+                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
                 }
                 connection.release();
-                return { result: true, msg: "삭제 완료" };
+                return callback({ result: true, msg: "삭제 완료" });
             });
         });
     },
@@ -460,11 +475,12 @@ var contests_model = {
      * Get contests list index by array
      * @param data (JSON) : start_id, amount
      * @param arr (Array)
+     * @param callback (Function)
      */
-    get_contests_by_array : function(data, arr) {
+    get_contests_by_array : function(data, arr, callback) {
         // 각 모집글 별로 정보 검색
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "에러 발생. 원인: "+err };
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
             // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
             var contests_list=  [];
@@ -494,11 +510,11 @@ var contests_model = {
                     connection.query(sql, select, function (err, rows) {
                         if (err) {
                             connection.release();
-                            return { result: false, msg: "찜 목록 정보를 가져오는데 실패했습니다. 원인: "+err };
+                            return callback({ result: false, msg: "찜 목록 정보를 가져오는데 실패했습니다. 원인: "+err });
                         }
                         connection.release();
 
-                        return { result: true, msg: "찜 목록 가져옴", data: rows };
+                        return callback({ result: true, msg: "찜 목록 가져옴", data: rows });
                     });
                 }
             });

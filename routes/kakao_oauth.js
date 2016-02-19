@@ -167,7 +167,7 @@ router.post('/users', function(req, res, next) {
             data.refresh_token,
             data.expires_in,
             data.scope];
-        var query = connection.query('INSERT INTO ?? SET ' +
+        connection.query('INSERT INTO ?? SET ' +
             'kakao_access_token = ?, ' +
             'kakao_token_type = ?, ' +
             'kakao_refresh_token = ?, ' +

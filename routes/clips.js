@@ -30,22 +30,25 @@ router.get('/', function(req, res, next) {
         async.waterfall([
             function (callback) {
                 // 사용자 인증
-                var result = users_model.get_user_id(data);
-                if (result.result) return callback(null, result.data);
-                else callback(result);
+                users_model.get_user_id(data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
             },
             function (back_data, callback) {
                 // 찜 목록 가져옴
                 data.users_id = back_data.users_id;
-                var result = clips_model.get_clips_list(data);
-                if (result.result) return callback(null, result.data);
-                else callback(result);
+                clips_model.get_clips_list(data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
             },
             function (back_data, callback) {
                 // 각 모집글 별로 정보 검색
-                var result = contests_model.get_contests_by_array(data, back_data);
-                if (result.result) return callback(null, result.data);
-                else callback(result);
+                contests_model.get_contests_by_array(data, back_data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
             }
         ], function (err, result) {
             // 찜 목록 출력
@@ -79,16 +82,18 @@ router.post('/:contest_id', function(req, res, next) {
         async.waterfall([
             function (callback) {
                 // 사용자 인증
-                var result = users_model.get_user_id(data);
-                if (result.result) return callback(null, result.data);
-                else callback(result);
+                users_model.get_user_id(data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
             },
             function (back_data, callback) {
                 // DB에 찜 한 게시물 저장
                 data.users_id = back_data.users_id;
-                var result = clips_model.set_clips(data);
-                if (result.result) return callback(null);
-                else callback(result);
+                clips_model.set_clips(data, function(result) {
+                    if (result.result) return callback(null);
+                    else callback(result);
+                });
             }
         ], function (err) {
             // 찜한 결과 출력
@@ -122,16 +127,18 @@ router.delete('/:contest_id', function(req, res, next) {
         async.waterfall([
             function (callback) {
                 // 사용자 인증
-                var result = users_model.get_user_id(data);
-                if (result.result) return callback(null, result.data);
-                else callback(result);
+                users_model.get_user_id(data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
             },
             function (back_data, callback) {
                 // DB에 찜 한 게시물 삭제
                 data.users_id = back_data.users_id;
-                var result = clips_model.delete_from_clips(data);
-                if (result.result) return callback(null);
-                else callback(result);
+                clips_model.delete_from_clips(data, function(result) {
+                    if (result.result) return callback(null);
+                    else callback(result);
+                });
             }
         ], function (err) {
             // 찜 취소 결과 출력

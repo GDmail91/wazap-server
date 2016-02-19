@@ -17,9 +17,10 @@ router.get('/', function(req, res) {
     if(data.amount == undefined) data.amount = 3;
 
     // TODO 모집공고 목록 가져옴 (메인)
-    var result = contests_model.get_contests_list(data);
-    res.statusCode = 200;
-    res.send(result);
+    contests_model.get_contests_list(data, function(result) {
+        res.statusCode = 200;
+        res.send(result);
+    });
 });
 
 /* POST contest writing */
@@ -46,16 +47,18 @@ router.post('/', function(req, res) {
         async.waterfall([
                 function(callback) {
                     // 사용자 인증
-                    var result = users_model.get_user_id(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // DB에 모집 데이터 저장
                     data.users_id = back_data.users_id;
-                    var result = contests_model.set_contests_recruit(data);
-                    if (result.result) return callback(null);
-                    else callback(result);
+                    contests_model.set_contests_recruit(data, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
+                    });
                 }
             ],
             function(err) {
@@ -88,21 +91,24 @@ router.get('/applications', function(req, res) {
         async.waterfall([
                 function(callback) {
                     // 사용자 인증
-                    var result = users_model.get_user_id(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // 신청서 정보 확인
-                    var result = contests_model.get_application_info(back_data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    contests_model.get_application_info(back_data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // 모집글 정보 가져옴
-                    var result = contests_model.get_contest_info(back_data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    contests_model.get_contest_info(back_data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 }
             ],
             function(err, result) {
@@ -132,9 +138,10 @@ router.get('/list/:writer_id', function(req, res) {
     async.waterfall([
         function(callback) {
             // 해당 유저의 목록 가져옴
-            var result = contests_model.get_contests_list_by_writer(data);
-            if (result.result) return callback(null, result.data);
-            else callback(result);
+            contests_model.get_contests_list_by_writer(data, function(result) {
+                if (result.result) return callback(null, result.data);
+                else callback(result);
+            });
         }
     ],
     function(err, result) {
@@ -158,10 +165,10 @@ router.get('/:contest_id', function(req, res) {
     };
 
     // 모집글 정보 가져옴
-    var result = contests_model.get_contest_by_writer(data);
-    res.statusCode = 200;
-    res.send(result);
-
+    contests_model.get_contest_by_writer(data, function(result) {
+        res.statusCode = 200;
+        res.send(result);
+    });
 });
 
 /* PUT contest editing */
@@ -189,22 +196,25 @@ router.put('/:contest_id', function(req, res) {
         async.waterfall([
                 function(callback) {
                     // 사용자 인증
-                    var result = users_model.get_user_id(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // 게시글 권한 인증
                     data.users_id = back_data.users_id;
-                    var result = contests_model.is_contest_writer(data);
-                    if (result.result) return callback(null);
-                    else callback(result);
+                    contests_model.is_contest_writer(data, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
+                    });
                 },
                 function(callback) {
                     // DB에 모집 데이터 저장
-                    var result = contests_model.edit_contests_info(data);
-                    if (result.result) return callback(null);
-                    else callback(result);
+                    contests_model.edit_contests_info(data, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
+                    });
                 }
             ],
             function(err) {
@@ -238,22 +248,25 @@ router.delete('/:contest_id', function(req, res) {
         async.waterfall([
                 function(callback) {
                     // 사용자 인증
-                    var result = users_model.get_user_id(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // 게시글 권한 인증
                     data.users_id = back_data.users_id;
-                    var result = contests_model.is_contest_writer(data);
-                    if (result.result) return callback(null);
-                    else callback(result);
+                    contests_model.is_contest_writer(data, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
+                    });
                 },
                 function(callback) {
                     // DB에서 글 삭제
-                    var result = contests_model.remove_contest(data);
-                    if (result.result) return callback(null);
-                    else callback(result);
+                    contests_model.remove_contest(data, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
+                    });
                 }
             ],
             function(err) {
@@ -292,55 +305,39 @@ router.post('/:contest_id/join', function(req, res) {
         async.waterfall([
                 function(callback) {
                     // 사용자 인증
-                    var result = users_model.get_user_id(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // 게시글 존재 확인
-                    var result = contests_model.get_contest_info(data);
-                    if (result.result) return callback(null, back_data, result.data[0]);
-                    else callback(result);
+                    contests_model.get_contest_info(data, function(result) {
+                        if (result.result) return callback(null, back_data, result.data[0]);
+                        else callback(result);
+                    });
                 },
                 function(back_data, contests_info, callback) {
                     // 중복 신청 방지
                     data.users_id = back_data.users_id;
-                    var result = contests_model.check_duplication(data);
-                    if (result.result) return callback(null, contests_info);
-                    else callback(result);
+                    contests_model.check_duplication(data, function(result) {
+                        if (result.result) return callback(null, contests_info);
+                        else callback(result);
+                    });
                 },
                 function(contests_info, callback) {
                     // DB에 신청 데이터 저장
-                    var result = contests_model.apply_contest(data);
-                    if (result.result) return callback(null, contests_info);
-                    else callback(result);
+                    contests_model.apply_contest(data, function(result) {
+                        if (result.result) return callback(null, contests_info);
+                        else callback(result);
+                    });
                 },
                 function(contests_info, callback) {
                     // 게시자에게 알림
-                    // Alram DB에 알림 저장
-                    pool.getConnection(function (err, connection) {
-                        if (err) {
-                            connection.release();
-                            return callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
-                        }
-
-                        var insert = ['Alram',
-                            contests_info.cont_writer,
-                            '신청자가 있습니다.',
-                            '/contests/list/'+contests_info.cont_writer];
-
-                        connection.query("INSERT INTO ?? SET " +
-                            "`alram_users_id` = ?, " +
-                            "`msg` = ?, " +
-                            "`msg_url` = ?, " +
-                            "`alramdate` = NOW()", insert, function (err) {
-                            if (err) {
-                                connection.release();
-                                return callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
-                            }
-                            connection.release();
-                            callback(null);
-                        });
+                    var alrams_model = require('../models/alrams_model');
+                    alrams_model.set_apply_alram(contests_info, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
                     });
                 }
             ],
@@ -376,22 +373,25 @@ router.get('/:contest_id/applies', function(req, res) {
         async.waterfall([
                 function(callback) {
                     // 사용자 인증
-                    var result = users_model.get_user_id(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // 게시글 권한 인증
                     data.users_id = back_data.users_id;
-                    var result = contests_model.is_contest_writer(data);
-                    if (result.result) return callback(null);
-                    else callback(result);
+                    contests_model.is_contest_writer(data, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
+                    });
                 },
                 function(callback) {
                     // 신청서 목록 가져옴
-                    var result = contests_model.get_apply_list(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    contests_model.get_apply_list(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 }
             ],
             function(err, results) {
@@ -428,56 +428,39 @@ router.post('/:contest_id/:applies_id', function(req, res) {
         async.waterfall([
                 function(callback) {
                     // 사용자 인증
-                    var result = users_model.get_user_id(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // 게시글 권한 인증
                     data.users_id = back_data.users_id;
-                    var result = contests_model.is_contest_writer(data);
-                    if (result.result) return callback(null);
-                    else callback(result);
+                    contests_model.is_contest_writer(data, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
+                    });
                 },
                 function(callback) {
                     // 신청서 정보 확인
-                    var result = contests_model.get_apply_info(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    contests_model.get_apply_info(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(applier_info, callback) {
                     // 신청서 승낙/거절
-                    var result = contests_model.accept_apply(data);
-                    if (result.result) return callback(null, result.data, applier_info);
-                    else callback(result);
+                    contests_model.accept_apply(data, function(result) {
+                        if (result.result) return callback(null, result.data, applier_info);
+                        else callback(result);
+                    });
                 },
                 function(rows, applier_info, callback) {
                     // 신청자에게 알림
-                    // Alram DB에 알림 저장
-                    pool.getConnection(function (err, connection) {
-                        if (err) {
-                            connection.release();
-                            return callback({result: false, msg: '알림 처리중 오류가 발생했습니다. 원인: ' + err});
-                        }
-
-                        console.log(applier_info);
-                        var insert = ['Alram',
-                            applier_info.app_users_id,
-                            '멤버 추가되었습니다.',
-                            '/contests/applications'];
-console.log(insert);
-                        connection.query("INSERT INTO ?? SET " +
-                            "`alram_users_id` = ?, " +
-                            "`msg` = ?, " +
-                            "`msg_url` = ?, " +
-                            "`alramdate` = NOW()", insert, function (err) {
-                            if (err) {
-                                connection.release();
-                                return callback({result: false, msg: '알림 처리중 오류가 발생했습니다. 원인: ' + err});
-                            }
-                            connection.release();
-                            callback(null, rows);
-                        });
+                    var alrams_model = require('../models/alrams_model');
+                    alrams_model.set_member_add_alram(applier_info, function(result) {
+                        if (result.result) return callback(null, rows);
+                        else callback(result);
                     });
                 }
             ],
@@ -514,22 +497,25 @@ router.delete('/:contest_id/join', function(req, res) {
         async.waterfall([
                 function(callback) {
                     // 사용자 인증
-                    var result = users_model.get_user_id(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(back_data, callback) {
                     // 신청서 정보 확인
                     data.users_id = back_data.users_id;
-                    var result = contests_model.get_apply_info(data);
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
+                    contests_model.get_apply_info(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
                 },
                 function(callback) {
                     // DB에서 신청서 삭제
-                    var result = contests_model.delete_from_apply(data);
-                    if (result.result) return callback(null);
-                    else callback(result);
+                    contests_model.delete_from_apply(data, function(result) {
+                        if (result.result) return callback(null);
+                        else callback(result);
+                    });
                 }
             ],
             function(err) {

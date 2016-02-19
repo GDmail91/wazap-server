@@ -26,9 +26,10 @@ router.post('/reg', function(req, res, next) {
     };
     if(data.access_token) {
         // user 정보 수정
-        var result = users_model.update_info(data);
-        res.statusCode = 200;
-        return res.send(result);
+        users_model.update_info(data, function(result) {
+            res.statusCode = 200;
+            return res.send(result);
+        });
     }
     res.send({ result: false, msg: "정보 수정에 실패했습니다. 원인: 토큰 데이터가 없습니다" });
 });
@@ -40,10 +41,10 @@ router.post('/auth', function(req, res, next) {
     };
 
     // login 정보 확인
-    var result = users_model.auth_user(data);
-    res.statusCode = 200;
-    res.send(result);
-
+    users_model.auth_user(data, function(result) {
+        res.statusCode = 200;
+        res.send(result);
+    });
 /*
     // 실서버 사용시
     // Session 정보 세팅
@@ -87,9 +88,10 @@ router.get('/:user_id', function(req, res, next) {
     };
 
     // 사용자 정보 가져옴
-    var result = users_model.get_user(data);
-    res.statusCode = 200;
-    res.send(result);
+    users_model.get_user(data, function(result) {
+        res.statusCode = 200;
+        res.send(result);
+    });
 });
 
 module.exports = router;
