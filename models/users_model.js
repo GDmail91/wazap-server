@@ -21,7 +21,7 @@ var users_model = {
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp, data.access_token];
-            connection.query('UPDATE users SET ' +
+            connection.query('UPDATE Users SET ' +
                 'kakao_id = ?, ' +
                 'username = ?, ' +
                 'school = ?, ' +
