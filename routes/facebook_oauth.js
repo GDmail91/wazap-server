@@ -142,11 +142,11 @@ router.post('/users', function(req, res, next) {
     var data = {
         "access_token": req.body.access_token,
         "users_id": req.body.users_id,
-        "username": req.body.nickname,
+        "username": req.body.username,
         "profile_image": req.body.profile_image,
-        "thumbnail_image": req.body.thumbnail_image
+        "thumbnail_image": req.body.profile_image
     };
-
+    console.log(data);
     pool.getConnection(function (err, connection) {
         var insert = ['Users',
             data.access_token,
