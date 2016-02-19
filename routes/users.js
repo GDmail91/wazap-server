@@ -31,8 +31,9 @@ router.post('/reg', function(req, res, next) {
             res.statusCode = 200;
             return res.send(result);
         });
+    } else {
+        res.send({ result: false, msg: "정보 수정에 실패했습니다. 원인: 토큰 데이터가 없습니다" });
     }
-    res.send({ result: false, msg: "정보 수정에 실패했습니다. 원인: 토큰 데이터가 없습니다" });
 });
 
 /* POST users authenticate process */

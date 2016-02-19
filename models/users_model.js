@@ -22,14 +22,14 @@ var users_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp, data.access_token];
             connection.query('UPDATE users SET ' +
-                'kakao_id = ??, ' +
-                'username = ??, ' +
-                'school = ??, ' +
-                'age = ??, ' +
-                'major = ??, ' +
-                'locate = ??, ' +
-                'introduce = ??, ' +
-                'exp = ?? WHERE kakao_access_token = ?', insert, function (err) {
+                'kakao_id = ?, ' +
+                'username = ?, ' +
+                'school = ?, ' +
+                'age = ?, ' +
+                'major = ?, ' +
+                'locate = ?, ' +
+                'introduce = ?, ' +
+                'exp = ? WHERE kakao_access_token = ?', insert, function (err) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "정보 수정에 실패했습니다. 원인: "+err });
