@@ -24,7 +24,8 @@ router.post('/reg', function(req, res, next) {
         'introduce': req.body.introduce,
         'exp': req.body.exp
     };
-    if(data.access_token) {
+
+    if(data.access_token != undefined) {
         // user 정보 수정
         users_model.update_info(data, function(result) {
             res.statusCode = 200;
