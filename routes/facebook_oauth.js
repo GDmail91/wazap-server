@@ -154,7 +154,11 @@ router.post('/users', function(req, res, next) {
             data.username,
             encodeURIComponent(data.profile_image),
             encodeURIComponent(data.thumbnail_image),
-            data.access_token];
+            data.access_token,
+            data.username,
+            encodeURIComponent(data.profile_image),
+            encodeURIComponent(data.thumbnail_image)];
+        console.log(insert);
         connection.query('INSERT INTO ?? SET ' +
             'facebook_access_token = ?, ' +
             'users_id = ?, ' +
@@ -162,7 +166,10 @@ router.post('/users', function(req, res, next) {
             'profile_img = ?, ' +
             'thumb_img = ? ' +
             'ON DUPLICATE KEY UPDATE ' +
-            'facebook_access_token = ?', insert, function (err, rows) {
+            'facebook_access_token = ?, ' +
+            'username = ?, ' +
+            'profile_img = ?, ' +
+            'thumb_img = ? ', insert, function (err, rows) {
             var dummy_data;
 
             if (err) {
