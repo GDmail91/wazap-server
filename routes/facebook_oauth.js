@@ -158,7 +158,7 @@ router.post('/users', function(req, res, next) {
             data.username,
             encodeURIComponent(data.profile_image),
             encodeURIComponent(data.thumbnail_image)];
-        console.log(insert);
+
         connection.query('INSERT INTO ?? SET ' +
             'facebook_access_token = ?, ' +
             'users_id = ?, ' +
