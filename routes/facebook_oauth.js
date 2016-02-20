@@ -159,12 +159,10 @@ router.post('/users', function(req, res, next) {
             encodeURIComponent(data.profile_image),
             encodeURIComponent(data.thumbnail_image)];
 
-        connection.query('INSERT INTO ?? SET ' +
-            'users_id = ?, ' +
-            'facebook_access_token = ?, ' +
-            'username = ?, ' +
-            'profile_img = ?, ' +
-            'thumb_img = ? ' +
+        connection.query('INSERT INTO ?? (' +
+            'users_id, facebook_access_token, username, profile_img, thumb_img )' +
+            'VALUES (' +
+            '?, ?, ?, ?, ? ' +
             'ON DUPLICATE KEY UPDATE ' +
             'facebook_access_token = ?, ' +
             'username = ?, ' +
