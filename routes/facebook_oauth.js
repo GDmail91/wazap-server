@@ -146,11 +146,10 @@ router.post('/users', function(req, res, next) {
         "profile_image": req.body.profile_image,
         "thumbnail_image": req.body.profile_image
     };
-    console.log(data);
+
     pool.getConnection(function (err, connection) {
         var insert = ['Users',
             data.access_token,
-            data.scope,
             data.users_id,
             data.username,
             encodeURIComponent(data.profile_image),
