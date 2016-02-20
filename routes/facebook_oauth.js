@@ -149,8 +149,8 @@ router.post('/users', function(req, res, next) {
 
     pool.getConnection(function (err, connection) {
         var insert = ['Users',
-            data.access_token,
             data.users_id,
+            data.access_token,
             data.username,
             encodeURIComponent(data.profile_image),
             encodeURIComponent(data.thumbnail_image),
@@ -160,8 +160,8 @@ router.post('/users', function(req, res, next) {
             encodeURIComponent(data.thumbnail_image)];
 
         connection.query('INSERT INTO ?? SET ' +
-            'facebook_access_token = ?, ' +
             'users_id = ?, ' +
+            'facebook_access_token = ?, ' +
             'username = ?, ' +
             'profile_img = ?, ' +
             'thumb_img = ? ' +
@@ -169,7 +169,7 @@ router.post('/users', function(req, res, next) {
             'facebook_access_token = ?, ' +
             'username = ?, ' +
             'profile_img = ?, ' +
-            'thumb_img = ? ', insert, function (err, rows) {
+            'thumb_img = ?', insert, function (err, rows) {
             var dummy_data;
 
             if (err) {
