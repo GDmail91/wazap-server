@@ -149,7 +149,7 @@ router.post('/users', function(req, res, next) {
     if (req.body.users_id == undefined
     || req.body.access_token == undefined
     || req.body.username == undefined
-    || req.body.profile_image)
+    || req.body.profile_image == undefined)
         return res.send({
             result: false,
             msg: "파라미터가 잘못 되었습니다."
