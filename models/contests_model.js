@@ -67,32 +67,79 @@ var contests_model = {
                 connection.release();
                 return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
-
-            var insert = ['Contests',
-                data.users_id,
-                data.title,
-                data.recruitment,
-                data.hosts,
-                data.categories,
-                data.period,
-                data.cover,
-                data.positions];
-            connection.query("INSERT INTO ?? SET " +
-                "`cont_writer` = ?, " +
-                "`title` = ?, " +
-                "`recruitment` = ?, " +
-                "`hosts` = ?, " +
-                "`categories` = ?, " +
-                "`period` = ?, " +
-                "`cover` = ?, " +
-                "`positions` = ?, " +
-                "`postdate` = NOW()", insert, function (err) {
+            connection.beginTransaction(function(err) {
                 if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                    throw err;
+                } else {
+                    var async = require('async');
+                    async.waterfall([
+                            function (in_callback) {
+                                var insert = ['Contests',
+                                    data.users_id,
+                                    data.title,
+                                    data.recruitment,
+                                    data.hosts,
+                                    JSON.stringify(data.categories),
+                                    data.period,
+                                    data.cover,
+                                    data.positions];
+                                connection.query("INSERT INTO ?? SET " +
+                                    "`cont_writer` = ?, " +
+                                    "`title` = ?, " +
+                                    "`recruitment` = ?, " +
+                                    "`hosts` = ?, " +
+                                    "`categories` = ?, " +
+                                    "`period` = ?, " +
+                                    "`cover` = ?, " +
+                                    "`positions` = ?, " +
+                                    "`postdate` = NOW()", insert, function (err, rows) {
+                                    if (err) {
+                                        connection.rollback(function () {
+                                            console.error('rollback error');
+                                        });
+
+                                        return in_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    }
+                                    in_callback(null, rows.insertId);
+                                });
+                            },
+                            function (insert_id, in_callback) {
+                                // 모집글의 카테고리별로 DB에 저장
+                                if (data.categories.length != 0) {
+                                    var length = 0;
+                                    data.categories.forEach(function (val, index, arr) {
+                                        categories_model.reg_contest(connection, { // 트랜잭션 처리 가능하도록 connection 변수 넣어줌
+                                            contests_id: insert_id,
+                                            category_name: val
+                                        }, function (result) {
+                                            if (result.result) {
+                                                length++;
+                                                if (length == data.categories.length) {
+                                                    return in_callback(null, { result: true, msg: '저장 성공' });
+                                                }
+                                            } else {
+                                                return in_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                                            }
+                                        })
+                                    });
+                                } else {
+                                    return in_callback(null, { result: true, msg: '저장 성공' });
+                                }
+                            }],
+                        function (err, result) {
+                            if (err) return err;
+                            connection.commit(function (err) {
+                                if (err) {
+                                    console.error(err);
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        throw err;
+                                    });
+                                }
+                                callback(result);
+                            });
+                        });
                 }
-                connection.release();
-                return callback({ result: true, msg: '저장 성공'});
             });
         });
     },
@@ -143,7 +190,6 @@ var contests_model = {
                 if (length == data.length) {
                     sql += ")";
 
-                    console.log(sql);
                     connection.query(sql, function (err, rows) {
                         if (err) {
                             connection.release();
@@ -517,6 +563,95 @@ var contests_model = {
                         return callback({ result: true, msg: "찜 목록 가져옴", data: rows });
                     });
                 }
+            });
+        });
+    }
+};
+
+var categories_model = {
+    /**
+     * Registration each contest category (Need connection to rollback
+     * @param connection (connection)
+     * @param data (JSON) : contests_id, category_name
+     * @param callback (Function)
+     */
+    reg_contest : function(connection, data, callback) {
+        // 모집글 별 카테고리 등록
+        // 가능한 카테고리명 ["디자인/UCC", "IT/개발", "마케팅/광고", "논문/문학", "게임"]
+        if (data.category_name == "디자인/UCC"
+        || "IT/개발"
+        || "마케팅/광고"
+        || "논문/문학"
+        || "게임") {
+            var insert = [data.contests_id, data.category_name];
+            var sql = "INSERT INTO categories SET cat_contests_id = ?, category_name = ?";
+
+            // 카테고리명 별로 DB에 저장
+            connection.query(sql, insert, function (err, rows) {
+                if (err) {
+                    connection.rollback(function () {
+                        console.error('rollback error');
+                        throw err;
+                    });
+                    return callback({result: false, msg: "카테고리를 저장하는데 실패했습니다. 원인: " + err});
+                }
+
+                return callback({result: true, msg: "카테고리 저장"});
+            });
+        } else {
+            return callback({ result: false, msg: "카테고리명이 잘못되었습니다." });
+        }
+    },
+
+    /**
+     * Get categories by name
+     * @param data (JSON) : category_name
+     * @param callback (Function)
+     */
+    get_categories_by_name : function(data, callback) {
+        // 카테고리 명으로 목록 가져오기
+        pool.getConnection(function (err, connection) {
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
+
+            // 가능한 카테고리명 ["디자인/UCC", "IT/개발", "마케팅/광고", "논문/문학", "게임"]
+            var select = [data.category_name];
+            var sql = "SELECT * FROM categories WHERE category_name = ?";
+
+            // 카테고리명 별로 DB에 저장
+            connection.query(sql, select, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return callback({ result: false, msg: "카테고리를 가져오는데 실패했습니다. 원인: "+err });
+                }
+                connection.release();
+
+                return callback({ result: true, msg: "카테고리명별 목록", data: rows});
+            });
+        });
+    },
+
+    /**
+     * Get categories by id
+     * @param data (JSON) : contests_id
+     * @param callback (Function)
+     */
+    get_categories_by_id : function(data, callback) {
+        // 콘테스트 ID로 카테고리 명 가져오기
+        pool.getConnection(function (err, connection) {
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
+
+            var select = [data.contests_id];
+            var sql = "SELECT * FROM categories WHERE cat_contests_id = ?";
+
+            // 카테고리명 별로 DB에 저장
+            connection.query(sql, select, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return callback({ result: false, msg: "카테고리를 가져오는데 실패했습니다. 원인: "+err });
+                }
+                connection.release();
+
+                return callback({ result: true, msg: "카테고리명 가져옴", data: rows});
             });
         });
     }

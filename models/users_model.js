@@ -29,7 +29,7 @@ var users_model = {
                 'major = ?, ' +
                 'locate = ?, ' +
                 'introduce = ?, ' +
-                'exp = ? WHERE kakao_access_token = ?', insert, function (err) {
+                'exp = ? WHERE facebook_access_token = ?', insert, function (err) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "정보 수정에 실패했습니다. 원인: "+err });
@@ -53,7 +53,7 @@ var users_model = {
         // login 정보 확인
         pool.getConnection(function (err, connection) {
             var select = [data.access_token];
-            connection.query("SELECT * FROM Users WHERE kakao_access_token = ?", select, function (err, rows) {
+            connection.query("SELECT * FROM Users WHERE facebook_access_token = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err });
@@ -117,22 +117,22 @@ var users_model = {
      * @param data (JSON) : access_token
      * @param callback (Function)
      */
-    get_user_id : function (data) {
+    get_user_id : function (data, callback) {
         // 사용자 인증
         pool.getConnection(function (err, connection) {
-            if (err) return { result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err};
+            if (err) return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err});
             var select = [data.access_token];
-            connection.query("SELECT users_id FROM Users WHERE kakao_access_token = ?", select, function (err, rows) {
+            connection.query("SELECT users_id FROM Users WHERE facebook_access_token = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return { result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err};
+                    return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err});
                 }
                 connection.release();
 
                 if (rows.length != 0) {
-                    return { result: true, msg: "사용자 정보 가져왔습니다.", data: { users_id : rows[0].users_id }};
+                    return callback({ result: true, msg: "사용자 정보 가져왔습니다.", data: { users_id : rows[0].users_id }});
                 } else {
-                    return { result: false, msg: '잘못된 접근입니다.'};
+                    return callback({ result: false, msg: '잘못된 접근입니다.'});
                 }
             });
         });
@@ -148,7 +148,7 @@ var users_model = {
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err});
             var select = [data.access_token];
-            connection.query("SELECT users_id, admin FROM Users WHERE kakao_access_token = ?", select, function (err, rows) {
+            connection.query("SELECT users_id, admin FROM Users WHERE facebook_access_token = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err});

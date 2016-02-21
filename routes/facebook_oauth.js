@@ -146,6 +146,14 @@ router.post('/users', function(req, res, next) {
         "profile_image": req.body.profile_image,
         "thumbnail_image": req.body.profile_image
     };
+    if (req.body.users_id == undefined
+    || req.body.access_token == undefined
+    || req.body.username == undefined
+    || req.body.profile_image)
+        return res.send({
+            result: false,
+            msg: "파라미터가 잘못 되었습니다."
+        });
 
     pool.getConnection(function (err, connection) {
         var insert = ['Users',
@@ -162,7 +170,7 @@ router.post('/users', function(req, res, next) {
         connection.query('INSERT INTO ?? (' +
             'users_id, facebook_access_token, username, profile_img, thumb_img )' +
             'VALUES (' +
-            '?, ?, ?, ?, ? ' +
+            '?, ?, ?, ?, ?) ' +
             'ON DUPLICATE KEY UPDATE ' +
             'facebook_access_token = ?, ' +
             'username = ?, ' +
