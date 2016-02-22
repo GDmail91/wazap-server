@@ -24,6 +24,6 @@
     "redis-session": "^0.1.0",
     "request": "^2.69.0",
     "serve-favicon": "~2.3.0",
-    "validator": "^4.5.0"
+    "validator": "^4.9.0"
   }
 }

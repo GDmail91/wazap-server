@@ -11,9 +11,10 @@ var router = express.Router();
 /* GET contests list */
 router.get('/', function(req, res) {
     var data = {
-        'start_id': req.query.start_id,
-        'amount': req.query.amount
+        'start_id': parseInt(req.query.start_id),
+        'amount': parseInt(req.query.amount)
     };
+
     if(data.amount == undefined) data.amount = 3;
 
     // TODO 모집공고 목록 가져옴 (메인)
