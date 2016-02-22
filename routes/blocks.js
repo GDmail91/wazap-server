@@ -19,7 +19,7 @@ router.get('/users', function(req, res) {
 
     var data = {
         'access_token': req.query.access_token,
-        'start_id': parseInt(req.query.start_id),
+        'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount)
     };
 

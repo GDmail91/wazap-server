@@ -11,7 +11,7 @@ var router = express.Router();
 /* GET contests list */
 router.get('/', function(req, res) {
     var data = {
-        'start_id': parseInt(req.query.start_id),
+        'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount)
     };
 
