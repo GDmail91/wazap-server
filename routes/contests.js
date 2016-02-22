@@ -47,6 +47,21 @@ router.post('/', function(req, res) {
         var async = require('async');
         async.waterfall([
                 function(callback) {
+                    // 유효성 검사
+                    if (data.categories == undefined) data.categories = [];
+
+                    var validation = /[a-힣]/;
+                    var Validator = require('validator');
+                    if(Validator.isNumeric(data.email)  // email check
+                    && validation.test(data.access_token) // character only
+                    && validation.test(data.title) // character only
+                    && validation.test(data.hosts) // character only
+                    && validation.test(data.cover)) // character only
+                        callback({ result: false, msg: '데이터 타입이 잘못되었습니다.' });
+                    else
+                        callback(null);
+                },
+                function(callback) {
                     // 사용자 인증
                     users_model.get_user_id(data, function(result) {
                         if (result.result) return callback(null, result.data);

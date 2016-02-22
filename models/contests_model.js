@@ -30,7 +30,7 @@ var contests_model = {
                 sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ?";
             }
 
-            var query=connection.query(sql, select, function (err, rows) {
+            connection.query(sql, select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: " + err});
@@ -52,7 +52,6 @@ var contests_model = {
                 }
                 callback(dummy_data);
             });
-            console.log(query);
         });
     },
 
