@@ -584,7 +584,7 @@ var categories_model = {
         || "논문/문학"
         || "게임") {
             var insert = [data.contests_id, data.category_name];
-            var sql = "INSERT INTO categories SET cat_contests_id = ?, category_name = ?";
+            var sql = "INSERT INTO Categories SET cat_contests_id = ?, category_name = ?";
 
             // 카테고리명 별로 DB에 저장
             connection.query(sql, insert, function (err, rows) {
@@ -615,7 +615,7 @@ var categories_model = {
 
             // 가능한 카테고리명 ["디자인/UCC", "IT/개발", "마케팅/광고", "논문/문학", "게임"]
             var select = [data.category_name];
-            var sql = "SELECT * FROM categories WHERE category_name = ?";
+            var sql = "SELECT * FROM Categories WHERE category_name = ?";
 
             // 카테고리명 별로 DB에 저장
             connection.query(sql, select, function (err, rows) {
@@ -641,7 +641,7 @@ var categories_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
 
             var select = [data.contests_id];
-            var sql = "SELECT * FROM categories WHERE cat_contests_id = ?";
+            var sql = "SELECT * FROM Categories WHERE cat_contests_id = ?";
 
             // 카테고리명 별로 DB에 저장
             connection.query(sql, select, function (err, rows) {
