@@ -139,6 +139,45 @@ var users_model = {
     },
 
     /**
+     * Get user name by id (array)
+     * @param data (JSON Array) users_id
+     * @param callback
+     */
+    get_user_name : function(data, callback) {
+        // 사용자 이름 가져옴
+        pool.getConnection(function (err, connection) {
+            if (err) return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err});
+
+            var sql = "SELECT username FROM Users WHERE facebook_access_token IN (";
+
+            // 선택한 사용자 ID 갯수만큼 WHERE절에 추가
+            var length = 0;
+            data.forEach(function (val) {
+                if(length == 0) sql += val.users_id;
+                else sql += "," + val.users_id;
+                length ++;
+                if (length == data.length) {
+                    sql += ")";
+
+                    connection.query(sql, function (err, rows) {
+                        if (err) {
+                            connection.release();
+                            return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err});
+                        }
+                        connection.release();
+
+                        if (rows.length != 0) {
+                            return callback({ result: true, msg: "사용자 정보 가져왔습니다.", data: { usersname : rows[0].username }});
+                        } else {
+                            return callback({ result: false, msg: '사용자 정보가 없습니다.'});
+                        }
+                    });
+                }
+            });
+        });
+    },
+
+    /**
      * Check whether admin or not
      * @param data (JSON) : access_token
      * @param callback (Function)
@@ -146,21 +185,21 @@ var users_model = {
     get_admin_id : function (data, callback) {
         // 관리자 인증
         pool.getConnection(function (err, connection) {
-            if (err) return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err});
+            if (err) return callback({result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err});
             var select = [data.access_token];
             connection.query("SELECT users_id, admin FROM Users WHERE facebook_access_token = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
-                    return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err});
+                    return callback({result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: " + err});
                 }
                 connection.release();
                 if (rows.length != 0) {
-                    if(rows[0].admin) {
-                        return callback({ result: true, msg: "사용자 정보 가져왔습니다.", data: { users_id : rows[0].users_id }});
+                    if (rows[0].admin) {
+                        return callback({result: true, msg: "사용자 정보 가져왔습니다.", data: {users_id: rows[0].users_id}});
                     }
 
                 }
-                return callback({ result: false, msg: '잘못된 접근입니다.'});
+                return callback({result: false, msg: '잘못된 접근입니다.'});
             });
         });
     }

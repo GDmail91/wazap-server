@@ -10,12 +10,12 @@ var router = express.Router();
 
 /* GET contests list */
 router.get('/', function(req, res) {
+
+    if(req.query.amount == undefined) req.query.amount = 3;
     var data = {
         'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount)
     };
-
-    if(data.amount == undefined) data.amount = 3;
 
     // TODO 모집공고 목록 가져옴 (메인)
     contests_model.get_contests_list(data, function(result) {
@@ -180,7 +180,7 @@ router.get('/:contest_id', function(req, res) {
     };
 
     // 모집글 정보 가져옴
-    contests_model.get_contest_by_writer(data, function(result) {
+    contests_model.get_contest_by_id(data, function(result) {
         res.statusCode = 200;
         res.send(result);
     });

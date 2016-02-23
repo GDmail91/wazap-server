@@ -23,13 +23,19 @@ var contests_model = {
             var select, sql;
             if (data.start_id == undefined) {
                 select = [data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests ORDER BY postdate DESC LIMIT ?";
+                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views " +
+                    "FROM Contests " +
+                    "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
+                    "ORDER BY postdate DESC LIMIT ? ";
             }
             else {
                 select = [data.start_id, data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ?";
+                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views FROM Contests " +
+                    "FROM Contests " +
+                    "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
+                    "WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ? ";
             }
-
+console.log(select);
             connection.query(sql, select, function (err, rows) {
                 if (err) {
                     connection.release();
@@ -179,7 +185,9 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
             // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            var sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id IN (";
+            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views FROM Contests " +
+                "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
+                "WHERE contests_id IN (";
 
             // contests id 갯수만큼 where절에 추가하기
             var length = 0;
@@ -231,18 +239,20 @@ var contests_model = {
     },
 
     /**
-     * Get contest by writer
+     * Get contest by id
      * @param data (JSON) : contests_id
      * @param callback (Function)
      */
-    get_contest_by_writer : function(data, callback) {
+    get_contest_by_id : function(data, callback) {
         // 모집글 정보 가져옴
         pool.getConnection(function (err, connection) {
             var select = [data.contest_id];
 
             // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
             // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            connection.query("SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id = ?", select, function (err, rows) {
+            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views FROM Contests " +
+                "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
+                "WHERE contests_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: "+err });
@@ -277,7 +287,9 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = [data.contest_id, data.users_id];
-            connection.query("SELECT * FROM Contests WHERE contests_id = ? AND cont_writer = ?", select, function (err, rows) {
+            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views FROM Contests " +
+                "INNER JOIN Users ON Contests.cont_writer = Users.users_id " + +
+                "WHERE contests_id = ? AND cont_writer = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "게시글 정보를 가져오는데 실패했습니다. 원인: " + err });
