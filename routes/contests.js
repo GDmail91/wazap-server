@@ -52,8 +52,7 @@ router.post('/', function(req, res) {
 
                     var validation = /[a-힣]/;
                     var Validator = require('validator');
-                    if(Validator.isNumeric(data.email)  // email check
-                    && validation.test(data.access_token) // character only
+                    if(validation.test(data.access_token) // character only
                     && validation.test(data.title) // character only
                     && validation.test(data.hosts) // character only
                     && validation.test(data.cover)) // character only
