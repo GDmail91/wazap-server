@@ -30,7 +30,7 @@ var contests_model = {
             }
             else {
                 select = [data.start_id, data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views FROM Contests " +
+                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                     "WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ? ";
