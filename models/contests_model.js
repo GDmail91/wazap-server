@@ -191,6 +191,7 @@ console.log(select);
 
             // contests id 갯수만큼 where절에 추가하기
             var length = 0;
+            console.log(data);
             data.forEach(function (val) {
                 if(length == 0) sql += val.app_contests_id;
                 else sql += "," + val.app_contests_id;

@@ -327,7 +327,7 @@ router.post('/:contest_id/join', function(req, res) {
                 },
                 function(back_data, callback) {
                     // 게시글 존재 확인
-                    contests_model.get_contest_info(data, function(result) {
+                    contests_model.get_contest_by_id(data, function(result) {
                         if (result.result) return callback(null, back_data, result.data[0]);
                         else callback(result);
                     });
