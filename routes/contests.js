@@ -336,6 +336,7 @@ router.post('/:contest_id/join', function(req, res) {
                     // 중복 신청 방지
                     data.users_id = back_data.users_id;
                     contests_model.check_duplication(data, function(result) {
+                        console.log(result);
                         if (result.result) return callback(null, contests_info);
                         else callback(result);
                     });
@@ -343,6 +344,7 @@ router.post('/:contest_id/join', function(req, res) {
                 function(contests_info, callback) {
                     // DB에 신청 데이터 저장
                     contests_model.apply_contest(data, function(result) {
+                        console.log(result);
                         if (result.result) return callback(null, contests_info);
                         else callback(result);
                     });
