@@ -328,7 +328,7 @@ router.post('/:contest_id/join', function(req, res) {
                 function(back_data, callback) {
                     // 게시글 존재 확인
                     contests_model.get_contest_by_id(data, function(result) {
-                        if (result.result) return callback(null, back_data, result.data[0]);
+                        if (result.result) return callback(null, back_data, result.data);
                         else callback(result);
                     });
                 },
@@ -336,7 +336,6 @@ router.post('/:contest_id/join', function(req, res) {
                     // 중복 신청 방지
                     data.users_id = back_data.users_id;
                     contests_model.check_duplication(data, function(result) {
-                        console.log(result);
                         if (result.result) return callback(null, contests_info);
                         else callback(result);
                     });
@@ -344,7 +343,6 @@ router.post('/:contest_id/join', function(req, res) {
                 function(contests_info, callback) {
                     // DB에 신청 데이터 저장
                     contests_model.apply_contest(data, function(result) {
-                        console.log(result);
                         if (result.result) return callback(null, contests_info);
                         else callback(result);
                     });
