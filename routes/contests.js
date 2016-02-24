@@ -523,13 +523,13 @@ router.delete('/:contest_id/join', function(req, res) {
                     // 신청서 정보 확인
                     data.users_id = back_data.users_id;
                     contests_model.get_apply_info(data, function(result) {
-                        if (result.result) return callback(null, result.data);
+                        if (result.result) return callback(null);
                         else callback(result);
                     });
                 },
-                function(back_data, callback) {
+                function(callback) {
                     // DB에서 신청서 삭제
-                    contests_model.delete_from_apply(back_data, function(result) {
+                    contests_model.delete_from_apply(data, function(result) {
                         if (result.result) return callback(null);
                         else callback(result);
                     });
