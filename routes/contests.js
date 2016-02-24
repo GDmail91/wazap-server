@@ -521,7 +521,7 @@ router.delete('/:contest_id/join', function(req, res) {
                     // 신청서 정보 확인
                     data.users_id = back_data.users_id;
                     contests_model.get_apply_info(data, function(result) {
-                        if (result.result) return callback(null, result.data);
+                        if (result.result) return callback(null);
                         else callback(result);
                     });
                 },
