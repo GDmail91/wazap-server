@@ -285,14 +285,14 @@ router.put('/:contest_id', function(req, res) {
 
 /* DELETE contests deleting */
 router.delete('/:contest_id', function(req, res) {
-    if (!req.body.access_token) {
+    if (!req.query.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.body.access_token,
+            'access_token': req.query.access_token,
             'contest_id': req.params.contest_id
         };
 
@@ -533,14 +533,14 @@ router.post('/:contest_id/:applies_id', function(req, res) {
 
 /* DELETE cancel apply */
 router.delete('/:contest_id/join', function(req, res) {
-    if (!req.body.access_token) {
+    if (!req.query.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.body.access_token,
+            'access_token': req.query.access_token,
             'contest_id': req.params.contest_id,
             'applies_id': req.params.applies_id
         };

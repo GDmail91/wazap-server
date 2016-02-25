@@ -200,7 +200,7 @@ router.delete('/users', function(req, res) {
     }
     var data = {
         'access_token': req.query.access_token,
-        'users_id': req.body.users_id
+        'users_id': req.query.users_id
     };
 
     // 사용자 블럭 취소 프로세스
@@ -244,7 +244,7 @@ router.delete('/contests', function(req, res) {
 
     var data = {
         'access_token': req.query.access_token,
-        'contests_id': req.body.contests_id
+        'contests_id': req.query.contests_id
     };
 
     // 게시물 블럭 취소 프로세스

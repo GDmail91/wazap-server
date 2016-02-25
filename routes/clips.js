@@ -117,14 +117,14 @@ router.post('/:contest_id', function(req, res, next) {
 
 /* DELETE pop on my page */
 router.delete('/:contest_id', function(req, res, next) {
-    if (!req.body.access_token) {
+    if (!req.query.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.body.access_token,
+            'access_token': req.query.access_token,
             'contest_id': req.params.contest_id
         };
 
