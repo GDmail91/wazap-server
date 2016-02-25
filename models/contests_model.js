@@ -546,24 +546,6 @@ console.log(select);
         // 각 모집글 별로 정보 검색
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
-            // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
-            // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            var contests_list=  [];
-            if (data.start_id == undefined) {
-                contests_list = arr;
-                select_query();
-            }
-            else {
-                var count = 0;
-                arr.forEach(function (val, index) {
-                    if (val.cli_contests_id <= data.start_id) {
-                        contests_list[index] = { cli_contests_id: val.cli_contests_id };
-                    }
-                    if (count == arr.length)
-                        select_query();
-                });
-            }
-
             var select_query = function() {
                 var select = [data.amount];
                 var sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id IN (";
@@ -587,6 +569,25 @@ console.log(select);
                             return callback({ result: true, msg: "찜 목록 가져옴", data: rows });
                         });
                     }
+                });
+            };
+
+            // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
+            // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
+
+            var contests_list=  [];
+            if (data.start_id == undefined) {
+                contests_list = arr;
+                select_query();
+            } else {
+                var count = 1;
+                arr.forEach(function (val, index) {
+                    if (val.cli_contests_id <= data.start_id) {
+                        contests_list[index] = { cli_contests_id: val.cli_contests_id };
+                    }
+                    if (count == arr.length) {
+                        select_query();
+                    } else count++;
                 });
             }
         });
