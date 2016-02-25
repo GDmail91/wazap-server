@@ -35,7 +35,7 @@ var contests_model = {
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                     "WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ? ";
             }
-console.log(select);
+
             connection.query(sql, select, function (err, rows) {
                 if (err) {
                     connection.release();
@@ -238,6 +238,45 @@ console.log(select);
                 } else {
                     return callback({ result: false, msg: '게시글이 없습니다.' });
                 }
+            });
+        });
+    },
+
+    /**
+     * Get contests and finish
+     * @param callback (Function)
+     */
+    get_contests_and_finishing : function(callback) {
+        // 모집글 정보 가져옴
+        pool.getConnection(function (err, connection) {
+            connection.query("SELECT contests_id FROM Contests " +
+                "WHERE is_finish = false AND period <= NOW()", function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return callback({ result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: "+err });
+                }
+                var sql = "UPDATE Contests SET is_finish=true WHERE contests_id IN (";
+
+                // contests id 갯수만큼 where절에 추가하기
+                var length = 0;
+                rows.forEach(function (val) {
+                    if(length == 0) sql += val.contests_id;
+                    else sql += "," + val.contests_id;
+                    length ++;
+                    if (length == rows.length) {
+                        sql += ")";
+
+                        connection.query(sql, function (err) {
+                            if (err) {
+                                connection.release();
+                                return callback({ result: false, msg: "모집글을 마감하는데 실패했습니다. 원인: "+err });
+                            }
+                            connection.release();
+
+                            return callback({ result: true, msg: "모집글을 마감하였습니다." });
+                        });
+                    }
+                });
             });
         });
     },

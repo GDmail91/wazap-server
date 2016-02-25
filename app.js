@@ -54,6 +54,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// schedule setting
+require('./wazap-schedule').on();
+
 // add routes
 require('./routes.js')(app);
 
