@@ -70,17 +70,55 @@ var clips_model = {
         // DB에 찜 한 게시물 저장
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
-
-            var insert = ['Clips', data.users_id, data.contest_id];
-            connection.query("UPDATE ?? SET " +
-                "`cli_users_id` = ?, " +
-                "`cli_contests_id` = ? ", insert, function (err) {
+            connection.beginTransaction(function(err) {
                 if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                    throw err;
+                } else {
+                    var async = require('async');
+                    async.waterfall([
+                        function (tran_callback) {
+                            var insert = ['Clips', data.users_id, data.contest_id];
+                            connection.query("INSERT INTO ?? SET " +
+                                "`cli_users_id` = ?, " +
+                                "`cli_contests_id` = ? ", insert, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                                    });
+                                }
+                                return tran_callback(null) ;
+                            });
+                        },
+                        function (tran_callback) {
+                            var insert = ['Contests', data.contest_id];
+
+                            var query= connection.query("UPDATE ?? SET clips = clips+1 WHERE contests_id = ?", insert, function (err, rows) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    });
+                                }
+                                connection.release();
+                                connection.commit(function (err) {
+                                    if (err) {
+                                        console.error(err);
+                                        connection.rollback(function () {
+                                            console.error('rollback error');
+                                            throw err;
+                                        });
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    }
+                                    return tran_callback(null, { result: true, msg: "찜 성공" });
+                                });
+                            });
+                            console.log(query.sql);
+                        }
+                    ], function (err, result) {
+                        callback(result);
+                    });
                 }
-                connection.release();
-                return callback({ result: true, msg: "찜 성공" }) ;
             });
         });
     },
@@ -94,15 +132,52 @@ var clips_model = {
         // DB에 찜 한 게시물 삭제
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: " +err });
-
-            var select = ['Clips', data.users_id, data.contest_id];
-            connection.query("DELETE FROM ?? WHERE cli_users_id = ? AND cli_contests_id = ? ", select, function (err) {
+            connection.beginTransaction(function(err) {
                 if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                    throw err;
+                } else {
+                    var async = require('async');
+                    async.waterfall([
+                        function (tran_callback) {
+                            var select = ['Clips', data.users_id, data.contest_id];
+                            connection.query("DELETE FROM ?? WHERE cli_users_id = ? AND cli_contests_id = ? ", select, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                                    });
+                                }
+                                return tran_callback(null);
+                            });
+                        },
+                        function (tran_callback) {
+                            var insert = ['Contests', data.contest_id];
+
+                            var query = connection.query("UPDATE ?? SET clips = clips-1 WHERE contests_id = ?", insert, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    });
+                                }
+                                connection.commit(function (err) {
+                                    if (err) {
+                                        console.error(err);
+                                        connection.rollback(function () {
+                                            console.error('rollback error');
+                                            throw err;
+                                        });
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    }
+                                    return tran_callback(null, { result: true, msg: "찜 삭제 완료" });
+                                });
+                            });
+                            console.log(query.sql);
+                        }
+                    ], function (err, result) {
+                        callback(result);
+                    });
                 }
-                connection.release();
-                return callback({ result: true, msg: "찜 삭제 완료" });
             });
         });
     }

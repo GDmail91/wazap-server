@@ -94,7 +94,7 @@ router.post('/:contest_id', function(req, res, next) {
                     else callback(result);
                 });
             },
-            function (back_data, callback) {
+            function (callback) {
                 // DB에 찜 한 게시물 저장
                 clips_model.set_clips(data, function(result) {
                     if (result.result) return callback(null);

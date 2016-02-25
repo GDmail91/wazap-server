@@ -18,19 +18,17 @@ var contests_model = {
      */
     get_contests_list : function (data, callback) {
         pool.getConnection(function (err, connection) {
-            // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
-            // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
             var select, sql;
             if (data.start_id == undefined) {
                 select = [data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish " +
+                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                     "ORDER BY postdate DESC LIMIT ? ";
             }
             else {
                 select = [data.start_id, data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish " +
+                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                     "WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ? ";
@@ -79,7 +77,7 @@ var contests_model = {
                 } else {
                     var async = require('async');
                     async.waterfall([
-                            function (in_callback) {
+                            function (tran_callback) {
                                 var insert = ['Contests',
                                     data.users_id,
                                     data.title,
@@ -104,12 +102,12 @@ var contests_model = {
                                             console.error('rollback error');
                                         });
 
-                                        return in_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
                                     }
-                                    in_callback(null, rows.insertId);
+                                    tran_callback(null, rows.insertId);
                                 });
                             },
-                            function (insert_id, in_callback) {
+                            function (insert_id, tran_callback) {
                                 // 모집글의 카테고리별로 DB에 저장
                                 if (data.categories.length != 0) {
                                     var length = 0;
@@ -121,15 +119,15 @@ var contests_model = {
                                             if (result.result) {
                                                 length++;
                                                 if (length == data.categories.length) {
-                                                    return in_callback(null, { result: true, msg: '저장 성공' });
+                                                    return tran_callback(null, { result: true, msg: '저장 성공' });
                                                 }
                                             } else {
-                                                return in_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                                                return tran_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
                                             }
                                         })
                                     });
                                 } else {
-                                    return in_callback(null, { result: true, msg: '저장 성공' });
+                                    return tran_callback(null, { result: true, msg: '저장 성공' });
                                 }
                             }],
                         function (err, result) {
@@ -160,7 +158,7 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러발생. 원인: "+err });
             var select = [data.users_id];
-            connection.query("SELECT applies_id, contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish " +
+            connection.query("SELECT applies_id, contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views, is_finish " +
                 "FROM Contests, Users, Applies " +
                 "WHERE app_users_id = ? " +
                 "AND Applies.app_contests_id = Contests.contests_id " +
@@ -189,7 +187,7 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
             // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish FROM Contests " +
+            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id IN (";
 
@@ -289,33 +287,67 @@ var contests_model = {
     get_contest_by_id : function(data, callback) {
         // 모집글 정보 가져옴
         pool.getConnection(function (err, connection) {
-            var select = [data.contest_id];
+            if (err) throw err;
+            connection.beginTransaction(function(err) {
+                if (err) throw err;
+                else {
+                    var async = require('async');
+                    async.waterfall([
+                        function (tran_callback) {
+                            var select = [data.contest_id];
+                            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
+                                "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
+                                "WHERE contests_id = ?", select, function (err, rows) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({ result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: "+err });
+                                    });
+                                }
 
-            // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
-            // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish FROM Contests " +
-                "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
-                "WHERE contests_id = ?", select, function (err, rows) {
-                if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: "모집글 정보를 가져오는데 실패했습니다. 원인: "+err });
-                }
-                connection.release();
+                                var dummy_data;
+                                if (rows.length != 0) {
+                                    dummy_data = {
+                                        result : true,
+                                        msg : "상세 목록 가져옴",
+                                        data : rows[0]
+                                    };
+                                } else {
+                                    dummy_data = {
+                                        result: false,
+                                        msg: "모집글 정보가 없습니다."
+                                    };
+                                }
+                                return tran_callback(null, dummy_data);
+                            });
+                        },
+                        function (dummy_data, tran_callback) {
+                            var insert = ['Contests', data.contest_id];
 
-                var dummy_data;
-                if (rows.length != 0) {
-                    dummy_data = {
-                        result : true,
-                        msg : "상세 목록 가져옴",
-                        data : rows[0]
-                    };
-                } else {
-                    dummy_data = {
-                        result: false,
-                        msg: "모집글 정보가 없습니다."
-                    };
+                            connection.query("UPDATE ?? SET views = views+1 WHERE contests_id = ?", insert, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    });
+                                }
+                                connection.commit(function (err) {
+                                    if (err) {
+                                        console.error(err);
+                                        connection.rollback(function () {
+                                            console.error('rollback error');
+                                            throw err;
+                                        });
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    }
+                                    return tran_callback(null, dummy_data);
+                                });
+                            });
+                        }
+                    ], function (err, result) {
+                        callback(result);
+                    });
                 }
-                return callback(dummy_data);
             });
         });
     },
@@ -331,7 +363,7 @@ var contests_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = [data.contest_id, data.users_id];
 
-            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish FROM Contests " +
+            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id = ? AND cont_writer = ?", select, function (err, rows) {
                 if (err) {
@@ -452,19 +484,55 @@ var contests_model = {
                 connection.release();
                 return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
-
-            var insert = ['Applies', data.contest_id, data.users_id];
-
-            connection.query("INSERT INTO ?? SET " +
-                "`app_contests_id` = ?, " +
-                "`app_users_id` = ?, " +
-                "`postdate` = NOW()", insert, function (err) {
+            connection.beginTransaction(function(err) {
                 if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                    throw err;
+                } else {
+                    var async = require('async');
+                    async.waterfall([
+                        function (tran_callback) {
+                            var insert = ['Applies', data.contest_id, data.users_id];
+
+                            connection.query("INSERT INTO ?? SET " +
+                                "`app_contests_id` = ?, " +
+                                "`app_users_id` = ?, " +
+                                "`postdate` = NOW()", insert, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    });
+                                }
+                                return tran_callback(null);
+                            });
+                        },
+                        function (tran_callback) {
+                            var insert = ['Contests', data.contest_id];
+
+                            connection.query("UPDATE ?? SET appliers = appliers+1 WHERE contests_id = ?", insert, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    });
+                                }
+                                connection.commit(function (err) {
+                                    if (err) {
+                                        console.error(err);
+                                        connection.rollback(function () {
+                                            console.error('rollback error');
+                                            throw err;
+                                        });
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    }
+                                    return tran_callback(null, {result: true, msg: "신청 완료"});
+                                });
+                            });
+                        }
+                    ], function (err, result) {
+                        callback(result);
+                    });
                 }
-                connection.release();
-                return callback({ result: true, msg: "신청 완료" });
             });
         });
     },
@@ -531,22 +599,72 @@ var contests_model = {
         // 신청서 승낙/거절
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: " +err });
-            var select = ['Applies', !data.is_check, data.applies_id];
-            connection.query("UPDATE ?? SET " +
-                "is_check = ? " +
-                "WHERE applies_id = ? ", select, function (err, rows) {
+            connection.beginTransaction(function(err) {
                 if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: "승낙하는데 실패했습니다. 원인: " + err });
-                }
-                connection.release();
-
-                if (rows.length != 0) {
-                    return callback({ result: true, msg: "승낙 성공", data: rows });
+                    throw err;
                 } else {
-                    return callback({ result: false, msg: '승낙할 신청서가 없습니다. '});
+                    var async = require('async');
+                    async.waterfall([
+                        function (tran_callback) {
+                            var select = ['Applies', !data.is_check, data.applies_id];
+                            connection.query("UPDATE ?? SET " +
+                                "is_check = ? " +
+                                "WHERE applies_id = ? ", select, function (err, rows) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({ result: false, msg: "승낙하는데 실패했습니다. 원인: " + err });
+                                    });
+                                }
+
+                                if (rows.length != 0) {
+                                    return tran_callback(null);
+                                } else {
+                                    return tran_callback({ result: false, msg: '승낙할 신청서가 없습니다. '});
+                                }
+                            });
+                        },
+                        function (tran_callback) {
+                            var select = ['Applies', data.applies_id];
+                            connection.query("SELECT app_contests_id FROM ?? WHERE applies_id = ?", select, function (err, rows) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    });
+                                }
+                                return tran_callback(null, rows[0]);
+                            });
+                        },
+                        function (back_data, tran_callback) {
+                            var insert = ['Contests', back_data.app_contests_id];
+
+                            connection.query("UPDATE ?? SET members = members+1 WHERE contests_id = ?", insert, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    });
+                                }
+                                connection.commit(function (err) {
+                                    if (err) {
+                                        console.error(err);
+                                        connection.rollback(function () {
+                                            console.error('rollback error');
+                                            throw err;
+                                        });
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    }
+                                    return tran_callback(null, { result: true, msg: "승낙 성공" });
+                                });
+                            });
+                        }
+                    ], function (err, result) {
+                        callback(result);
+                    });
                 }
             });
+
         });
     },
 
@@ -562,15 +680,52 @@ var contests_model = {
                 connection.release();
                 return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
-
-            var select = ['Applies', data.contest_id, data.users_id];
-            connection.query("DELETE FROM ?? WHERE app_contests_id = ? AND app_users_id = ?", select, function (err) {
+            connection.beginTransaction(function(err) {
                 if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                    throw err;
+                } else {
+                    var async = require('async');
+                    async.waterfall([
+                        function (tran_callback) {
+
+                            var select = ['Applies', data.contest_id, data.users_id];
+                            connection.query("DELETE FROM ?? WHERE app_contests_id = ? AND app_users_id = ?", select, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                                    });
+                                }
+                                return tran_callback(null);
+                            });
+                        },
+                        function (tran_callback) {
+                            var insert = ['Contests', data.contest_id];
+
+                            connection.query("UPDATE ?? SET appliers = appliers - 1 WHERE contests_id = ?", insert, function (err) {
+                                if (err) {
+                                    connection.rollback(function () {
+                                        console.error('rollback error');
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    });
+                                }
+                                connection.commit(function (err) {
+                                    if (err) {
+                                        console.error(err);
+                                        connection.rollback(function () {
+                                            console.error('rollback error');
+                                            throw err;
+                                        });
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    }
+                                    return tran_callback(null, { result: true, msg: "삭제 완료" });
+                                });
+                            });
+                        }
+                    ], function (err, result) {
+                        callback(result);
+                    });
                 }
-                connection.release();
-                return callback({ result: true, msg: "삭제 완료" });
             });
         });
     },
@@ -587,7 +742,7 @@ var contests_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select_query = function() {
                 var select = [data.amount];
-                var sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id IN (";
+                var sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views FROM Contests WHERE contests_id IN (";
 
                 // contests id 갯수만큼 where절에 추가하기
                 var length = 0;
