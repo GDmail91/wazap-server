@@ -154,6 +154,7 @@ router.delete('/:contest_id', function(req, res, next) {
                 result : true,
                 msg : "찜 목록 삭제."
             };
+
             res.statusCode = 200;
             res.send(dummy_data);
         });
