@@ -96,7 +96,7 @@ var clips_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: " +err });
 
             var select = ['Clips', data.users_id, data.contest_id];
-            connection.query("DELETE FROM ?? WHERE users_id = ? AND contests_id = ? ", select, function (err) {
+            connection.query("DELETE FROM ?? WHERE cli_users_id = ? AND cli_contests_id = ? ", select, function (err) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
