@@ -17,13 +17,12 @@ router.get('/users', function(req, res) {
         });
     }
 
+    if(req.query.amount == undefined) req.query.amount = 10;
     var data = {
         'access_token': req.query.access_token,
         'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount)
     };
-
-    if(data.amount == undefined) data.amount = 10;
 
     // 사용자 블럭 목록 가져오는 프로세스
     var async = require('async');
@@ -65,13 +64,12 @@ router.get('/contests', function(req, res) {
         });
     }
 
+    if(req.query.amount == undefined) req.query.amount = 10;
     var data = {
         'access_token': req.query.access_token,
         'start_id': req.query.start_id,
         'amount': req.query.amount
     };
-
-    if(data.amount == undefined) data.amount = 10;
 
     // 게시물 블럭 목록 가져오는 프로세스
     var async = require('async');

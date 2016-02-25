@@ -17,13 +17,12 @@ router.get('/', function(req, res, next) {
             msg: "로그인이 필요합니다."
         });
     } else {
+        if(req.query.amount == undefined) req.query.amount = 3;
         var data = {
             'access_token': req.query.access_token,
             'start_id': req.query.start_id,
             'amount': parseInt(req.query.amount)
         };
-
-        if(data.amount == undefined) data.amount = 3;
 
         // 찜 목록 가져오는 프로세스
         var async = require('async');
