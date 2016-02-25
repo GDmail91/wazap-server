@@ -23,11 +23,15 @@ var alrams_model = {
             var select, sql;
             if (data.start_id == undefined) {
                 select = [data.users_id, data.amount];
-                sql = "SELECT * FROM Alram WHERE alram_users_id = ? ORDER BY alramdate DESC LIMIT ?";
+                sql = "SELECT alram_id, alram_users_id, alram_target_id, Users.username, msg, msg_url, is_check, alramdate FROM Alram " +
+                    "INNER JOIN Users ON Alram.alram_target_id = Users.users_id " +
+                    "WHERE alram_users_id = ? ORDER BY alramdate DESC LIMIT ?";
             }
             else {
                 select = [data.users_id, data.start_id, data.amount];
-                sql = "SELECT * FROM Alram WHERE alram_users_id = ? AND alram_id <= ? ORDER BY alramdate DESC LIMIT ?";
+                sql = "SELECT alram_id, alram_users_id, alram_target_id, Users.username, msg, msg_url, is_check, alramdate FROM Alram " +
+                    "INNER JOIN Users ON Alram.alram_target_id = Users.users_id " +
+                    "WHERE alram_users_id = ? AND alram_id <= ? ORDER BY alramdate DESC LIMIT ?";
             }
             var query = connection.query(sql, select, function (err, rows) {
                 if (err) {
@@ -42,7 +46,6 @@ var alrams_model = {
                     return callback({ result: false, msg: '알림 목록이 없습니다.' });
                 }
             });
-            console.log(query);
         });
     },
 
@@ -51,7 +54,7 @@ var alrams_model = {
      * @param data (JSON) : cont_writer
      * @param callback (Function)
      */
-    set_apply_alram : function(data, callback) {
+    set_apply_alram : function(users_id, data, callback) {
         // Alram DB에 알림 저장
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -61,11 +64,13 @@ var alrams_model = {
 
             var insert = ['Alram',
                 data.cont_writer,
-                '신청자가 있습니다.',
+                users_id,
+                '님이 ['+ data.title +']에 신청하였습니다.',
                 '/contests/list/'+data.cont_writer];
 
             connection.query("INSERT INTO ?? SET " +
                 "`alram_users_id` = ?, " +
+                "`alram_target_id` = ?, " +
                 "`msg` = ?, " +
                 "`msg_url` = ?, " +
                 "`alramdate` = NOW()", insert, function (err) {
@@ -84,7 +89,7 @@ var alrams_model = {
      * @param data (JSON) : app_users_id
      * @param callback (Function)
      */
-    set_member_add_alram : function(data, callback) {
+    set_member_add_alram : function(users_id, data, callback) {
         // Alram DB에 알림 저장
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -94,11 +99,13 @@ var alrams_model = {
 
             var insert = ['Alram',
                 data.app_users_id,
-                '멤버 추가되었습니다.',
+                users_id,
+                '님이 ['+ data.title +'] 수락하였습니다.',
                 '/contests/applications'];
 
             connection.query("INSERT INTO ?? SET " +
                 "`alram_users_id` = ?, " +
+                "`alram_target_id` = ?, " +
                 "`msg` = ?, " +
                 "`msg_url` = ?, " +
                 "`alramdate` = NOW()", insert, function (err) {

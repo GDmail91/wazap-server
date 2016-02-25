@@ -140,6 +140,51 @@ router.get('/applications', function(req, res) {
     }
 });
 
+router.put('/finish/:contests_id', function(req, res) {
+    var data = {
+       'access_token': req.body.access_token,
+       'contest_id': req.params.contests_id
+    };
+
+    // 지원서 마감하는 프로세스
+    var async = require('async');
+    async.waterfall([
+            function(callback) {
+                // 사용자 인증
+                users_model.get_user_id(data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
+            },
+            function(back_data, callback) {
+                data.users_id = back_data.users_id;
+                // 게시글 권한 인증
+                contests_model.is_contest_writer(data, function(result) {
+                    if (result.result) return callback(null);
+                    else callback(result);
+                });
+            },
+            function(callback) {
+                // 모집글 마감 설정
+                contests_model.set_contests_finish(data, function(result) {
+                    if (result.result) return callback(null, result);
+                    else callback(result);
+                });
+            }
+        ],
+        function(err, result) {
+            // 취소 결과 출력
+            if (err) return res.send(err);
+            var dummy_data = {
+                result: true,
+                msg: result.msg
+            };
+            res.statusCode = 200;
+            res.send(dummy_data);
+        });
+
+});
+
 /* GET users contests list */
 router.get('/list/:writer_id', function(req, res) {
     var data = {
@@ -336,21 +381,21 @@ router.post('/:contest_id/join', function(req, res) {
                     // 중복 신청 방지
                     data.users_id = back_data.users_id;
                     contests_model.check_duplication(data, function(result) {
-                        if (result.result) return callback(null, contests_info);
+                        if (result.result) return callback(null, back_data, contests_info);
                         else callback(result);
                     });
                 },
-                function(contests_info, callback) {
+                function(back_data, contests_info, callback) {
                     // DB에 신청 데이터 저장
                     contests_model.apply_contest(data, function(result) {
-                        if (result.result) return callback(null, contests_info);
+                        if (result.result) return callback(null, back_data, contests_info);
                         else callback(result);
                     });
                 },
-                function(contests_info, callback) {
+                function(back_data, contests_info, callback) {
                     // 게시자에게 알림
                     var alrams_model = require('../models/alrams_model');
-                    alrams_model.set_apply_alram(contests_info, function(result) {
+                    alrams_model.set_apply_alram(back_data.users_id, contests_info, function(result) {
                         if (result.result) return callback(null);
                         else callback(result);
                     });
@@ -456,7 +501,7 @@ router.post('/:contest_id/:applies_id', function(req, res) {
                         else callback(result);
                     });
                 },
-                function(callback) {
+                function( callback) {
                     // 신청서 정보 확인
                     contests_model.get_apply_info(data, function(result) {
                         if (result.result) return callback(null, result.data);
@@ -473,7 +518,7 @@ router.post('/:contest_id/:applies_id', function(req, res) {
                 function(rows, applier_info, callback) {
                     // 신청자에게 알림
                     var alrams_model = require('../models/alrams_model');
-                    alrams_model.set_member_add_alram(applier_info, function(result) {
+                    alrams_model.set_member_add_alram(data.users_id, applier_info, function(result) {
                         if (result.result) return callback(null, rows);
                         else callback(result);
                     });

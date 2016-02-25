@@ -23,14 +23,14 @@ var contests_model = {
             var select, sql;
             if (data.start_id == undefined) {
                 select = [data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views " +
+                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                     "ORDER BY postdate DESC LIMIT ? ";
             }
             else {
                 select = [data.start_id, data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views " +
+                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                     "WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ? ";
@@ -185,7 +185,7 @@ console.log(select);
         pool.getConnection(function (err, connection) {
             // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
             // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views FROM Contests " +
+            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id IN (";
 
@@ -251,7 +251,7 @@ console.log(select);
 
             // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
             // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views FROM Contests " +
+            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id = ?", select, function (err, rows) {
                 if (err) {
@@ -288,8 +288,9 @@ console.log(select);
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = [data.contest_id, data.users_id];
-            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views FROM Contests " +
-                "INNER JOIN Users ON Contests.cont_writer = Users.users_id " + +
+
+            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish FROM Contests " +
+                "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id = ? AND cont_writer = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
@@ -462,7 +463,9 @@ console.log(select);
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = ['Applies', data.contest_id, data.users_id];
-            connection.query("SELECT applies_id, app_users_id, postdate, is_check FROM ?? WHERE app_contests_id = ?", select, function (err, rows) {
+            connection.query("SELECT applies_id, app_users_id, Applies.postdate, is_check, Contests.title FROM ?? " +
+                "INNER JOIN Contests ON Applies.app_contests_id = Contests.contests_id " +
+                "WHERE app_contests_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
@@ -575,6 +578,34 @@ console.log(select);
 
                         return callback({ result: true, msg: "찜 목록 가져옴", data: rows });
                     });
+                }
+            });
+        });
+    },
+
+    /**
+     * Set contests status to finish
+     * @param data (JSON) : contests_id
+     * @param callback (Function)
+     */
+    set_contests_finish : function(data, callback) {
+        // 모집글 마감 설정
+        pool.getConnection(function (err, connection) {
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: " +err });
+            var select = ['Contests', data.contest_id];
+            connection.query("UPDATE ?? SET " +
+                "is_finish = true " +
+                "WHERE contests_id = ? ", select, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return callback({ result: false, msg: "마감설정을 실패했습니다. 원인: " + err });
+                }
+                connection.release();
+
+                if (rows.length != 0) {
+                    return callback({ result: true, msg: "마감하였습니다.", data: rows });
+                } else {
+                    return callback({ result: false, msg: '글이 존재하지 않습니다.' });
                 }
             });
         });
