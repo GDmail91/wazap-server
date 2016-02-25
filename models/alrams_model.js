@@ -23,7 +23,7 @@ var alrams_model = {
             var select, sql;
             if (data.start_id == undefined) {
                 select = [data.users_id, data.amount];
-                sql = "SELECT alram_id, alram_users_id, alram_target_id, Users.username, msg, msg_url, is_check, alramdate FROM Alram " +
+                sql = "SELECT alram_id, alram_users_id, alram_target_id, Users.username, Users.profile_img, msg, msg_url, is_check, alramdate FROM Alram " +
                     "INNER JOIN Users ON Alram.alram_target_id = Users.users_id " +
                     "WHERE alram_users_id = ? ORDER BY alramdate DESC LIMIT ?";
             }
