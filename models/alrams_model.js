@@ -33,7 +33,7 @@ var alrams_model = {
                     "INNER JOIN Users ON Alram.alram_target_id = Users.users_id " +
                     "WHERE alram_users_id = ? AND alram_id <= ? ORDER BY alramdate DESC LIMIT ?";
             }
-            var query = connection.query(sql, select, function (err, rows) {
+            connection.query(sql, select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "알림 목록을 가져오는데 실패했습니다. 원인: " + err });
@@ -51,6 +51,7 @@ var alrams_model = {
 
     /**
      * Set alram when apply
+     * @param users_id (Number)
      * @param data (JSON) : cont_writer
      * @param callback (Function)
      */
@@ -86,6 +87,7 @@ var alrams_model = {
 
     /**
      * Set alram when member add
+     * @param users_id (Number)
      * @param data (JSON) : app_users_id
      * @param callback (Function)
      */

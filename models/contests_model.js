@@ -113,7 +113,7 @@ console.log(select);
                                 // 모집글의 카테고리별로 DB에 저장
                                 if (data.categories.length != 0) {
                                     var length = 0;
-                                    data.categories.forEach(function (val, index, arr) {
+                                    data.categories.forEach(function (val) {
                                         categories_model.reg_contest(connection, { // 트랜잭션 처리 가능하도록 connection 변수 넣어줌
                                             contests_id: insert_id,
                                             category_name: val
@@ -195,7 +195,6 @@ console.log(select);
 
             // contests id 갯수만큼 where절에 추가하기
             var length = 0;
-            console.log(data);
             data.forEach(function (val) {
                 if(length == 0) sql += val.app_contests_id;
                 else sql += "," + val.app_contests_id;
