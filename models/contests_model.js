@@ -572,9 +572,6 @@ console.log(select);
                 });
             };
 
-            // TODO members, appliers, clips, 가져오는 것 (JOIN 해야함)
-            // TODO members 는 Applies테이블 중 is_check가 트루인 사람들, applier는 나머지 전부, clips 는 Clips 테이블중 contests_id를 가지고 있는것등
-
             var contests_list=  [];
             if (data.start_id == undefined) {
                 contests_list = arr;
