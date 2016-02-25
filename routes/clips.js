@@ -87,8 +87,15 @@ router.post('/:contest_id', function(req, res, next) {
                 });
             },
             function (back_data, callback) {
-                // DB에 찜 한 게시물 저장
+                // 이미 찜했는지 중복검사
                 data.users_id = back_data.users_id;
+                clips_model.check_duplication(data, function(result) {
+                    if (result.result) return callback(null);
+                    else callback(result);
+                });
+            },
+            function (back_data, callback) {
+                // DB에 찜 한 게시물 저장
                 clips_model.set_clips(data, function(result) {
                     if (result.result) return callback(null);
                     else callback(result);

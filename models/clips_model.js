@@ -39,6 +39,29 @@ var clips_model = {
     },
 
     /**
+     * Check duplication of clips
+     * @param data (JSON) : users_id, contest_id
+     * @param callback (Function)
+     */
+    check_duplication : function(data, callback) {
+        // DB에 찜 한 게시물 저장
+        pool.getConnection(function (err, connection) {
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
+
+            var select = ['Clips', data.users_id, data.contest_id];
+            connection.query("SELECT * FROM ?? WHERE cli_users_id = ? AND cli_contests_id = ?", select, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                }
+                connection.release();
+                if (rows.length == 0) return callback({ result: true, msg: "신청 가능합니다." });
+                callback({ result: false, msg: "이미 찜한 게시물 입니다." }) ;
+            });
+        });
+    },
+
+    /**
      * Set clips each request
      * @param data (JSON) : users_id, contest_id
      * @param callback (Function)
@@ -49,7 +72,7 @@ var clips_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
 
             var insert = ['Clips', data.users_id, data.contest_id];
-            connection.query("INSERT INTO ?? SET " +
+            connection.query("UPDATE ?? SET " +
                 "`cli_users_id` = ?, " +
                 "`cli_contests_id` = ? ", insert, function (err) {
                 if (err) {
