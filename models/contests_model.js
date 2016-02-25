@@ -551,38 +551,44 @@ console.log(select);
             var contests_list=  [];
             if (data.start_id == undefined) {
                 contests_list = arr;
+                select_query();
             }
             else {
+                var count = 0;
                 arr.forEach(function (val, index) {
                     if (val.cli_contests_id <= data.start_id) {
                         contests_list[index] = { cli_contests_id: val.cli_contests_id };
                     }
+                    if (count == arr.length)
+                        select_query();
                 });
             }
 
-            var select = [data.amount];
-            var sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id IN (";
+            var select_query = function() {
+                var select = [data.amount];
+                var sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, views FROM Contests WHERE contests_id IN (";
 
-            // contests id 갯수만큼 where절에 추가하기
-            var length = 0;
-            contests_list.forEach(function (val) {
-                if(length == 0) sql += val.cli_contests_id;
-                else sql += "," + val.cli_contests_id;
-                length ++;
-                if (length == contests_list.length) {
-                    sql += ") ORDER BY postdate DESC LIMIT ?";
+                // contests id 갯수만큼 where절에 추가하기
+                var length = 0;
+                contests_list.forEach(function (val) {
+                    if(length == 0) sql += val.cli_contests_id;
+                    else sql += "," + val.cli_contests_id;
+                    length ++;
+                    if (length == contests_list.length) {
+                        sql += ") ORDER BY postdate DESC LIMIT ?";
 
-                    connection.query(sql, select, function (err, rows) {
-                        if (err) {
+                        connection.query(sql, select, function (err, rows) {
+                            if (err) {
+                                connection.release();
+                                return callback({ result: false, msg: "찜 목록 정보를 가져오는데 실패했습니다. 원인: "+err });
+                            }
                             connection.release();
-                            return callback({ result: false, msg: "찜 목록 정보를 가져오는데 실패했습니다. 원인: "+err });
-                        }
-                        connection.release();
 
-                        return callback({ result: true, msg: "찜 목록 가져옴", data: rows });
-                    });
-                }
-            });
+                            return callback({ result: true, msg: "찜 목록 가져옴", data: rows });
+                        });
+                    }
+                });
+            }
         });
     },
 
