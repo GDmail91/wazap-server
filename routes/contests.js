@@ -117,13 +117,6 @@ router.get('/applications', function(req, res) {
                         if (result.result) return callback(null, result.data);
                         else callback(result);
                     });
-                },
-                function(back_data, callback) {
-                    // 모집글 정보 가져옴
-                    contests_model.get_contest_info(back_data, function(result) {
-                        if (result.result) return callback(null, result.data);
-                        else callback(result);
-                    });
                 }
             ],
             function(err, result) {

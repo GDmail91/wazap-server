@@ -159,8 +159,12 @@ console.log(select);
         // 신청서 정보 확인
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러발생. 원인: "+err });
-            var select = ['Applies', data.users_id];
-            connection.query("SELECT * FROM ?? WHERE app_users_id = ?", select, function (err, rows) {
+            var select = [data.users_id];
+            connection.query("SELECT applies_id, contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, views, is_finish " +
+                "FROM Contests, Users, Applies " +
+                "WHERE app_users_id = ? " +
+                "AND Applies.app_contests_id = Contests.contests_id " +
+                "AND Contests.cont_writer = Users.users_id", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
