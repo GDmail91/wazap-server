@@ -547,7 +547,10 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생 원인: "+err });
             var select = ['Applies', data.contest_id, data.users_id];
-            connection.query("SELECT applies_id, app_users_id, postdate, is_check FROM ?? WHERE app_contests_id = ?", select, function (err, rows) {
+            connection.query("SELECT applies_id, app_users_id, Applies.postdate, is_check, Users.username, Users.profile_img FROM ??, Users, Contests " +
+                "WHERE Applies.app_users_id = Users.users_id " +
+                "AND Applies.app_contests_id = Contests.contests_id " +
+                "AND app_contests_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
