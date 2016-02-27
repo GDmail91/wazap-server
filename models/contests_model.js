@@ -29,7 +29,7 @@ var contests_model = {
             }
             else {
                 select = [data.start_id, data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish " +
+                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish, " +
                     "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
