@@ -411,30 +411,30 @@ router.post('/:contest_id/join', function(req, res) {
                 },
                 function(back_data, callback) {
                     // 게시글 존재 확인
-                    contests_model.get_contest_by_id(data, function(result) {
-                        if (result.result) return callback(null, back_data, result.data);
-                        else callback(result);
-                    });
-                },
-                function(back_data, contests_info, callback) {
-                    // 중복 신청 방지
                     data.users_id = back_data.users_id;
-                    contests_model.check_duplication(data, function(result) {
-                        if (result.result) return callback(null, back_data, contests_info);
+                    contests_model.get_contest_by_id(data, function(result) {
+                        if (result.result) return callback(null, result.data);
                         else callback(result);
                     });
                 },
-                function(back_data, contests_info, callback) {
+                function(contests_info, callback) {
+                    // 중복 신청 방지
+                    contests_model.check_duplication(data, function(result) {
+                        if (result.result) return callback(null, contests_info);
+                        else callback(result);
+                    });
+                },
+                function(contests_info, callback) {
                     // DB에 신청 데이터 저장
                     contests_model.apply_contest(data, function(result) {
-                        if (result.result) return callback(null, back_data, contests_info);
+                        if (result.result) return callback(null, contests_info);
                         else callback(result);
                     });
                 },
-                function(back_data, contests_info, callback) {
+                function(contests_info, callback) {
                     // 게시자에게 알림
                     var alrams_model = require('../models/alrams_model');
-                    alrams_model.set_apply_alram(back_data.users_id, contests_info, function(result) {
+                    alrams_model.set_apply_alram(data.users_id, contests_info, function(result) {
                         if (result.result) return callback(null);
                         else callback(result);
                     });
