@@ -10,18 +10,44 @@ var router = express.Router();
 
 /* GET contests list */
 router.get('/', function(req, res) {
+    if (!req.query.access_token) {
+        return res.send({
+            result: false,
+            msg: "로그인이 필요합니다."
+        });
+    } else {
+        if (req.query.amount == undefined) req.query.amount = 3;
+        var data = {
+            'access_token': req.query.access_token,
+            'start_id': req.query.start_id,
+            'amount': parseInt(req.query.amount)
+        };
 
-    if(req.query.amount == undefined) req.query.amount = 3;
-    var data = {
-        'start_id': req.query.start_id,
-        'amount': parseInt(req.query.amount)
-    };
+        // 모집공고 목록 가져옴 (메인)
+        var async = require('async');
+        async.waterfall([
+            function(callback) {
+                // 사용자 인증
+                users_model.get_user_id(data, function(result) {
+                    if (result.result) return callback(null, result.data);
+                    else callback(result);
+                });
+            },
+            function(back_data, callback) {
+                data.users_id = back_data.users_id;
+                contests_model.get_contests_list(data, function (result) {
+                    if (result.result) return callback(null, result);
+                    callback(result);
+                });
+            }], function(err, result) {
+                if (err) {
+                    return res.send({ result: false, msg: err.msg });
+                }
+                res.statusCode = 200;
+                res.send(result);
+            });
 
-    // TODO 모집공고 목록 가져옴 (메인)
-    contests_model.get_contests_list(data, function(result) {
-        res.statusCode = 200;
-        res.send(result);
-    });
+    }
 });
 
 /* POST contest writing */
@@ -133,6 +159,7 @@ router.get('/applications', function(req, res) {
     }
 });
 
+/* PUT finish the contest */
 router.put('/finish/:contests_id', function(req, res) {
     var data = {
        'access_token': req.body.access_token,

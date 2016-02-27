@@ -172,7 +172,6 @@ var clips_model = {
                                     return tran_callback(null, { result: true, msg: "찜 삭제 완료" });
                                 });
                             });
-                            console.log(query.sql);
                         }
                     ], function (err, result) {
                         callback(result);
