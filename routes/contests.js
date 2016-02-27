@@ -241,11 +241,30 @@ router.get('/list/:writer_id', function(req, res) {
 /* GET contests detail view */
 router.get('/:contest_id', function(req, res) {
     var data = {
+        'access_token': req.query.access_token,
         'contest_id': req.params.contest_id
     };
 
     // 모집글 정보 가져옴
-    contests_model.get_contest_by_id(data, function(result) {
+    var async = require('async');
+    async.waterfall([
+        function(callback) {
+            // 사용자 인증
+            users_model.get_user_id(data, function(result) {
+                if (result.result) return callback(null, result.data);
+                else callback(result);
+            });
+        },
+        function(back_data, callback) {
+            data.users_id = back_data.users_id;
+            contests_model.get_contest_by_id(data, function (result) {
+                if (result.result) return callback(null, result);
+                callback(result);
+            });
+        }], function(err, result) {
+        if (err) {
+            return res.send({ result: false, msg: err.msg });
+        }
         res.statusCode = 200;
         res.send(result);
     });
