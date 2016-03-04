@@ -19,7 +19,7 @@ router.get('/', function(req, res) {
         if (req.query.amount == undefined) req.query.amount = 3;
         var data = {
             'start_id': req.query.start_id,
-            'amount': req.query.amount,
+            'amount': parseInt(req.query.amount),
             'search': req.query.search,
             'access_token': req.query.access_token
         };
