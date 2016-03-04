@@ -18,22 +18,17 @@ var contests_model = {
      */
     get_contests_list : function (data, callback) {
         pool.getConnection(function (err, connection) {
-            var select, sql;
+            var select;
+            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish, " +
+                "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
+                "FROM Contests " +
+                "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
             if (data.start_id == undefined) {
                 select = [data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish, " +
-                    "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
-                    "FROM Contests " +
-                    "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
-                    "ORDER BY postdate DESC LIMIT ? ";
-            }
-            else {
+                sql += "ORDER BY postdate DESC LIMIT ? ";
+            } else {
                 select = [data.start_id, data.amount];
-                sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish, " +
-                    "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
-                    "FROM Contests " +
-                    "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
-                    "WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ? ";
+                sql += "WHERE contests_id <= ? ORDER BY postdate DESC LIMIT ? ";
             }
 
             connection.query(sql, select, function (err, rows) {
@@ -422,7 +417,7 @@ var contests_model = {
                                     "`positions` = ?" +
                                     "WHERE contests_id = ?", insert, function (err) {
                                     if (err) {
-                                        console.error(err)
+                                        console.error(err);
                                         connection.rollback(function() {
                                             console.error('rollback error');
                                             return tran_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
@@ -846,6 +841,51 @@ var contests_model = {
                     } else count++;
                 });
             }
+        });
+    },
+
+    /**
+     * Contests list by title
+     * @param data (JSON) : users_id, start_id, amount, search
+     * @param callback (Function)
+     */
+    get_contests_by_title : function (data, callback) {
+        pool.getConnection(function (err, connection) {
+            var select;
+            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish, " +
+                "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
+                "FROM Contests " +
+                "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
+            if (data.start_id == undefined) {
+                select = [data.search, data.amount];
+                sql += "WHERE title LIKE ? ORDER BY postdate DESC LIMIT ? ";
+            } else {
+                select = [data.search, data.start_id, data.amount];
+                sql += "WHERE contests_id <= ? AND title LIKE ? ORDER BY postdate DESC LIMIT ? ";
+            }
+
+            connection.query(sql, select, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return callback({result: false, msg: "검색 정보를 가져오는데 실패했습니다. 원인: " + err});
+                }
+                connection.release();
+
+                var dummy_data;
+                if (rows.length != 0) {
+                    dummy_data = {
+                        result: true,
+                        msg: "검색 목록 가져옴",
+                        data: rows
+                    };
+                } else {
+                    dummy_data = {
+                        result: false,
+                        msg: "검색 정보가 없습니다."
+                    };
+                }
+                callback(dummy_data);
+            });
         });
     },
 
