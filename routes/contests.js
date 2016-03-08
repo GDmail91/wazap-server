@@ -66,6 +66,7 @@ router.post('/', function(req, res) {
             'categories': req.body.categories,
             'period': req.body.period,
             'cover': req.body.cover,
+            'locate': req.body.locate,
             'positions': req.body.positions
         };
 
@@ -287,6 +288,7 @@ router.put('/:contest_id', function(req, res) {
             'categories': req.body.categories,
             'period': req.body.period,
             'cover': req.body.cover,
+            'locate': req.body.locate,
             'positions': req.body.positions
         };
 

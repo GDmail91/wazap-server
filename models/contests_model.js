@@ -19,7 +19,7 @@ var contests_model = {
     get_contests_list : function (data, callback) {
         pool.getConnection(function (err, connection) {
             var select;
-            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish, " +
+            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
                 "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
                 "FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
@@ -83,6 +83,7 @@ var contests_model = {
                                     JSON.stringify(data.categories),
                                     data.period,
                                     data.cover,
+                                    data.cont_locate,
                                     data.positions];
                                 connection.query("INSERT INTO ?? SET " +
                                     "`cont_writer` = ?, " +
@@ -92,6 +93,7 @@ var contests_model = {
                                     "`categories` = ?, " +
                                     "`period` = ?, " +
                                     "`cover` = ?, " +
+                                    "`cont_locate` = ?" +
                                     "`positions` = ?, " +
                                     "`postdate` = NOW()", insert, function (err, rows) {
                                     if (err) {
@@ -155,7 +157,7 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러발생. 원인: "+err });
             var select = [data.users_id];
-            connection.query("SELECT applies_id, contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views, is_finish " +
+            connection.query("SELECT applies_id, contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish " +
                 "FROM Contests, Users, Applies " +
                 "WHERE app_users_id = ? " +
                 "AND Applies.app_contests_id = Contests.contests_id " +
@@ -182,7 +184,7 @@ var contests_model = {
     get_contest_info : function(data, callback) {
         // 모집글 정보 가져옴
         pool.getConnection(function (err, connection) {
-            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
+            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id IN (";
 
@@ -290,7 +292,7 @@ var contests_model = {
                     async.waterfall([
                         function (tran_callback) {
                             var select = [data.contest_id];
-                            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
+                            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
                                 "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
                                 "FROM Contests " +
                                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
@@ -360,7 +362,7 @@ var contests_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = [data.contest_id, data.users_id];
 
-            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
+            connection.query("SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id = ? AND cont_writer = ?", select, function (err, rows) {
                 if (err) {
@@ -405,6 +407,7 @@ var contests_model = {
                                     JSON.stringify(data.categories),
                                     data.period,
                                     data.cover,
+                                    data.cont_locate,
                                     data.positions,
                                     data.contest_id];
                                 connection.query("UPDATE ?? SET " +
@@ -414,6 +417,7 @@ var contests_model = {
                                     "`categories` = ?, " +
                                     "`period` = ?, " +
                                     "`cover` = ?, " +
+                                    "`cont_locate` = ?" +
                                     "`positions` = ?" +
                                     "WHERE contests_id = ?", insert, function (err) {
                                     if (err) {
@@ -802,7 +806,7 @@ var contests_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select_query = function() {
                 var select = [data.amount];
-                var sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, positions, Contests.postdate, members, appliers, clips, views FROM Contests WHERE contests_id IN (";
+                var sql = "SELECT contests_id, title, recruitment, cont_writer, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views FROM Contests WHERE contests_id IN (";
 
                 // contests id 갯수만큼 where절에 추가하기
                 var length = 0;
@@ -852,7 +856,7 @@ var contests_model = {
     get_contests_by_title : function (data, callback) {
         pool.getConnection(function (err, connection) {
             var select;
-            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, positions, postdate, members, appliers, clips, views, is_finish, " +
+            var sql = "SELECT contests_id, title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
                 "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
                 "FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
