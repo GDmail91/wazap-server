@@ -20,6 +20,7 @@ router.post('/reg', function(req, res, next) {
         'school': req.body.school,
         'age': req.body.age,
         'major': req.body.major,
+        'skill': req.body.skill,
         'locate': req.body.locate,
         'introduce': req.body.introduce,
         'exp': req.body.exp

@@ -20,13 +20,14 @@ var users_model = {
         // user 정보 수정
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
-            var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.locate, data.introduce, data.exp, data.access_token];
+            var insert = [data.kakao_id, data.username, data.school, data.age, data.major, data.skill, data.locate, data.introduce, data.exp, data.access_token];
             connection.query('UPDATE Users SET ' +
                 '`kakao_id` = ?, ' +
                 '`username` = ?, ' +
                 '`school` = ?, ' +
                 '`age` =?, ' +
                 '`major` = ?, ' +
+                '`skill` = ? ' +
                 '`locate` = ?, ' +
                 '`introduce` = ?, ' +
                 '`exp` = ? WHERE facebook_access_token= ?', insert, function (err, rows) {
@@ -88,7 +89,7 @@ var users_model = {
         pool.getConnection(function (err, connection) {
             var select = [data.user_id];
 
-            connection.query("SELECT username, major, school, locate, kakao_id, introduce, exp, age FROM Users WHERE users_id = ?", select, function (err, rows) {
+            connection.query("SELECT username, major, skill, school, locate, kakao_id, introduce, exp, age FROM Users WHERE users_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err });
