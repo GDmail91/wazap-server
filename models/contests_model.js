@@ -93,7 +93,7 @@ var contests_model = {
                                     "`categories` = ?, " +
                                     "`period` = ?, " +
                                     "`cover` = ?, " +
-                                    "`cont_locate` = ?" +
+                                    "`cont_locate` = ?, " +
                                     "`positions` = ?, " +
                                     "`postdate` = NOW()", insert, function (err, rows) {
                                     if (err) {
@@ -417,7 +417,7 @@ var contests_model = {
                                     "`categories` = ?, " +
                                     "`period` = ?, " +
                                     "`cover` = ?, " +
-                                    "`cont_locate` = ?" +
+                                    "`cont_locate` = ?, " +
                                     "`positions` = ?" +
                                     "WHERE contests_id = ?", insert, function (err) {
                                     if (err) {

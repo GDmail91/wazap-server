@@ -10,6 +10,7 @@ var router = express.Router();
 
 /* GET user block list */
 router.get('/users', function(req, res) {
+    console.log(req.headers.test);
     if (!req.query.access_token) {
         return res.send({
             result: false,
