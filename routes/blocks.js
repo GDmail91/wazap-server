@@ -10,8 +10,7 @@ var router = express.Router();
 
 /* GET user block list */
 router.get('/users', function(req, res) {
-    console.log(req.headers.test);
-    if (!req.query.access_token) {
+    if (!req.headers.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -20,7 +19,7 @@ router.get('/users', function(req, res) {
 
     if(req.query.amount == undefined) req.query.amount = 10;
     var data = {
-        'access_token': req.query.access_token,
+        'access_token': req.headers.access_token,
         'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount)
     };
@@ -58,7 +57,7 @@ router.get('/users', function(req, res) {
 
 /* GET contest block list */
 router.get('/contests', function(req, res) {
-    if (!req.query.access_token) {
+    if (!req.headers.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -67,7 +66,7 @@ router.get('/contests', function(req, res) {
 
     if(req.query.amount == undefined) req.query.amount = 10;
     var data = {
-        'access_token': req.query.access_token,
+        'access_token': req.headers.access_token,
         'start_id': req.query.start_id,
         'amount': req.query.amount
     };
@@ -105,7 +104,7 @@ router.get('/contests', function(req, res) {
 
 /* POST user block */
 router.post('/users', function(req, res) {
-    if (!req.query.access_token) {
+    if (!req.headers.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -113,7 +112,7 @@ router.post('/users', function(req, res) {
     }
 
     var data = {
-        'access_token': req.query.access_token,
+        'access_token': req.headers.access_token,
         'users_id': req.body.users_id
     };
 
@@ -149,7 +148,7 @@ router.post('/users', function(req, res) {
 
 /* POST contest block */
 router.post('/contests', function(req, res) {
-    if (!req.query.access_token) {
+    if (!req.headers.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -157,7 +156,7 @@ router.post('/contests', function(req, res) {
     }
 
     var data = {
-        'access_token': req.query.access_token,
+        'access_token': req.headers.access_token,
         'contests_id': req.body.contests_id
     };
 
@@ -193,14 +192,14 @@ router.post('/contests', function(req, res) {
 
 /* DELETE user block status */
 router.delete('/users', function(req, res) {
-    if (!req.query.access_token) {
+    if (!req.headers.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     }
     var data = {
-        'access_token': req.query.access_token,
+        'access_token': req.headers.access_token,
         'users_id': req.query.users_id
     };
 
@@ -236,7 +235,7 @@ router.delete('/users', function(req, res) {
 
 /* DELETE contest block */
 router.delete('/contests', function(req, res) {
-    if (!req.query.access_token) {
+    if (!req.headers.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -244,7 +243,7 @@ router.delete('/contests', function(req, res) {
     }
 
     var data = {
-        'access_token': req.query.access_token,
+        'access_token': req.headers.access_token,
         'contests_id': req.query.contests_id
     };
 

@@ -14,7 +14,7 @@ router.get('/', function(req, res, next) {
 /* POST users registration */
 router.post('/reg', function(req, res, next) {
     var data = {
-        'access_token': req.body.access_token,
+        'access_token': req.headers.access_token,
         'kakao_id': req.body.kakao_id,
         'username': req.body.username,
         'school': req.body.school,
@@ -40,7 +40,7 @@ router.post('/reg', function(req, res, next) {
 /* POST users authenticate process */
 router.post('/auth', function(req, res, next) {
     var data = {
-        'access_token': req.body.access_token
+        'access_token': req.headers.access_token
     };
 
     // login 정보 확인

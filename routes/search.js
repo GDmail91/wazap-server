@@ -10,7 +10,7 @@ var router = express.Router();
 
 /* GET search for title */
 router.get('/', function(req, res) {
-    if (!req.query.access_token) {
+    if (!req.headers.access_token) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -21,7 +21,7 @@ router.get('/', function(req, res) {
             'start_id': req.query.start_id,
             'amount': parseInt(req.query.amount),
             'search': req.query.search,
-            'access_token': req.query.access_token
+            'access_token': req.headers.access_token
         };
 
         // 지원서 마감하는 프로세스
