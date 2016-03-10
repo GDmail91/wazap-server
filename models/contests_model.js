@@ -626,7 +626,7 @@ var contests_model = {
                 if (rows.length != 0) {
                     return callback({ result: true, msg: "멤버 목록 가져옴", data: rows });
                 } else {
-                    return callback({ result: false, msg: '멤버 목록이 없습니다.' });
+                    return callback({ result: true, msg: '멤버 목록이 없습니다.' });
                 }
             });
         });

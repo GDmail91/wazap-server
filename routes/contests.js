@@ -270,7 +270,6 @@ router.get('/:contest_id', function(req, res) {
         function(back_data, callback) {
             contests_model.get_member_list(data, function(result) {
                 if (result.result) {
-                    console.log(result);
                     back_data.data.member_list = result.data;
                     return callback(null, back_data);
                 }
@@ -566,6 +565,7 @@ router.post('/:contest_id/:applies_id', function(req, res) {
                 },
                 function(applier_info, callback) {
                     // 신청서 승낙/거절
+                    data.is_check = applier_info.is_check;
                     contests_model.accept_apply(data, function(result) {
                         if (result.result) return callback(null, result.data, applier_info);
                         else callback(result);
