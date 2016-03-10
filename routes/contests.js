@@ -62,6 +62,7 @@ router.post('/', function(req, res) {
         var data = {
             'access_token': req.headers.access_token,
             'title': req.body.title,
+            'cont_title': req.body.cont_title,
             'recruitment': req.body.recruitment,
             'hosts': req.body.hosts,
             'categories': req.body.categories,
@@ -253,14 +254,26 @@ router.get('/:contest_id', function(req, res) {
         function(callback) {
             // 사용자 인증
             users_model.get_user_id(data, function(result) {
-                if (result.result) return callback(null, result.data);
+                if (result.result) {
+                    data.users_id = result.data.users_id;
+                    return callback(null);
+                }
                 else callback(result);
             });
         },
-        function(back_data, callback) {
-            data.users_id = back_data.users_id;
+        function(callback) {
             contests_model.get_contest_by_id(data, function (result) {
                 if (result.result) return callback(null, result);
+                callback(result);
+            });
+        },
+        function(back_data, callback) {
+            contests_model.get_member_list(data, function(result) {
+                if (result.result) {
+                    console.log(result);
+                    back_data.data.member_list = result.data;
+                    return callback(null, back_data);
+                }
                 callback(result);
             });
         }], function(err, result) {
@@ -284,6 +297,7 @@ router.put('/:contest_id', function(req, res) {
             'access_token': req.headers.access_token,
             'contest_id': req.params.contest_id,
             'title': req.body.title,
+            'cont_title': req.body.cont_title,
             'recruitment': req.body.recruitment,
             'hosts': req.body.hosts,
             'categories': req.body.categories,
