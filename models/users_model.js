@@ -27,7 +27,7 @@ var users_model = {
                 '`school` = ?, ' +
                 '`age` =?, ' +
                 '`major` = ?, ' +
-                '`skill` = ? ' +
+                '`skill` = ?, ' +
                 '`locate` = ?, ' +
                 '`introduce` = ?, ' +
                 '`exp` = ? WHERE facebook_access_token= ?', insert, function (err, rows) {
