@@ -20,6 +20,7 @@ var router = express.Router();
 
 /* GET redirect from kakaotalk oauth */
 router.get('/', function(req, res, next) {
+    // TODO duplicated
     var data = {
         'authorize_code': req.query.code
     };
@@ -108,10 +109,10 @@ router.get('/', function(req, res, next) {
         },
         function(back_data, callback) {
             // 로그인 처리
-            var req_data = { access_token : back_data.access_token};
+            var req_data = back_data.access_token;
             request.post({
                 url: '/users/auth',
-                form: req_data
+                'access-token': req_data
             }, function (err, httpResponse, body) {
                 var body = JSON.parse(body);
                 if (body.result) {
@@ -130,7 +131,7 @@ router.get('/', function(req, res, next) {
         var dummy_data = {
             result: true,
             msg: "로그인에 성공했습니다.",
-            data: results.access_token
+            data: { access_token : results }
         };
         res.statusCode = 200;
         res.send(dummy_data);
@@ -140,14 +141,14 @@ router.get('/', function(req, res, next) {
 /* POST get users information from kakao */
 router.post('/users', function(req, res, next) {
     var data = {
-        "access_token": req.body.access_token,
+        "access_token": req.headers['access-token'],
         "users_id": req.body.users_id,
         "username": req.body.username,
         "profile_image": req.body.profile_image,
         "thumbnail_image": req.body.profile_image
     };
     if (req.body.users_id == undefined
-    || req.body.access_token == undefined
+    || req.headers['access-token'] == undefined
     || req.body.username == undefined
     || req.body.profile_image == undefined)
         return res.send({
