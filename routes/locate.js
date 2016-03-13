@@ -10,7 +10,6 @@ var router = express.Router();
 
 /* GET state name */
 router.get('/', function(req, res) {
-    console.log(req.headers['access-token']);
     if (!req.headers['access-token']) {
         return res.send({
             result: false,
@@ -37,13 +36,11 @@ router.get('/', function(req, res) {
         function(callback) {
             // 시,구 정보 가져옴
             locate_model.get_state_list(data, function(result) {
-                console.log(result);
                 if (result.result) return callback(null, result);
                 callback(result);
             });
         }
     ], function(err, result) {
-        console.log(result);
         // 시,구 정보 출력
         if (err) return res.send(err);
 
