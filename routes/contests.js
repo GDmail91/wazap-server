@@ -10,7 +10,7 @@ var router = express.Router();
 
 /* GET contests list */
 router.get('/', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -18,7 +18,7 @@ router.get('/', function(req, res) {
     } else {
         if (req.query.amount == undefined) req.query.amount = 3;
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'start_id': req.query.start_id,
             'amount': parseInt(req.query.amount)
         };
@@ -53,14 +53,14 @@ router.get('/', function(req, res) {
 
 /* POST contest writing */
 router.post('/', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'title': req.body.title,
             'cont_title': req.body.cont_title,
             'recruitment': req.body.recruitment,
@@ -120,14 +120,14 @@ router.post('/', function(req, res) {
 
 /* GET applies list */
 router.get('/applications', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token
+            'access_token': req.headers['access-token']
         };
 
         // 신청자 목록 가져오는 프로세스
@@ -165,7 +165,7 @@ router.get('/applications', function(req, res) {
 /* PUT finish the contest */
 router.put('/finish/:contests_id', function(req, res) {
     var data = {
-       'access_token': req.headers.access_token,
+       'access_token': req.headers['access-token'],
        'contest_id': req.params.contests_id
     };
 
@@ -211,7 +211,7 @@ router.put('/finish/:contests_id', function(req, res) {
 /* GET users contests list */
 router.get('/list/:writer_id', function(req, res) {
     var data = {
-        'access_token': req.headers.access_token,
+        'access_token': req.headers['access-token'],
         'writer_id': req.params.writer_id
     };
 
@@ -244,7 +244,7 @@ router.get('/list/:writer_id', function(req, res) {
 /* GET contests detail view */
 router.get('/:contest_id', function(req, res) {
     var data = {
-        'access_token': req.headers.access_token,
+        'access_token': req.headers['access-token'],
         'contest_id': req.params.contest_id
     };
 
@@ -286,14 +286,14 @@ router.get('/:contest_id', function(req, res) {
 
 /* PUT contest editing */
 router.put('/:contest_id', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'contest_id': req.params.contest_id,
             'title': req.body.title,
             'cont_title': req.body.cont_title,
@@ -347,14 +347,14 @@ router.put('/:contest_id', function(req, res) {
 
 /* DELETE contests deleting */
 router.delete('/:contest_id', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'contest_id': req.params.contest_id
         };
 
@@ -404,14 +404,14 @@ router.get('/:contest_id/join', function(req, res, next) {
 
 /* POST contests join process */
 router.post('/:contest_id/join', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'contest_id': req.params.contest_id
         };
 
@@ -472,14 +472,14 @@ router.post('/:contest_id/join', function(req, res) {
 
 /* GET contest appliers list */
 router.get('/:contest_id/applies', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'contest_id': req.params.contest_id
         };
 
@@ -526,14 +526,14 @@ router.get('/:contest_id/applies', function(req, res) {
 
 /* POST member adding */
 router.post('/:contest_id/:applies_id', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'contest_id': req.params.contest_id,
             'applies_id': req.params.applies_id
         };
@@ -596,14 +596,14 @@ router.post('/:contest_id/:applies_id', function(req, res) {
 
 /* DELETE cancel apply */
 router.delete('/:contest_id/join', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'contest_id': req.params.contest_id,
             'applies_id': req.params.applies_id
         };

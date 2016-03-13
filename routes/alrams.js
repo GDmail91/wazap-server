@@ -10,7 +10,7 @@ var router = express.Router();
 
 /* GET clips list */
 router.get('/', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -18,7 +18,7 @@ router.get('/', function(req, res) {
     } else {
         if(req.query.amount == undefined) req.query.amount = 3;
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'start_id': req.query.start_id,
             'amount': parseInt(req.query.amount)
         };

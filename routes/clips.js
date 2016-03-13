@@ -11,7 +11,7 @@ var router = express.Router();
 
 /* GET clips list */
 router.get('/', function(req, res, next) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
@@ -19,7 +19,7 @@ router.get('/', function(req, res, next) {
     } else {
         if(req.query.amount == undefined) req.query.amount = 3;
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'start_id': req.query.start_id,
             'amount': parseInt(req.query.amount)
         };
@@ -65,14 +65,14 @@ router.get('/', function(req, res, next) {
 
 /* POST clip on my page */
 router.post('/:contest_id', function(req, res, next) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'contest_id': req.params.contest_id
         };
 
@@ -117,14 +117,14 @@ router.post('/:contest_id', function(req, res, next) {
 
 /* DELETE pop on my page */
 router.delete('/:contest_id', function(req, res, next) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
         var data = {
-            'access_token': req.headers.access_token,
+            'access_token': req.headers['access-token'],
             'contest_id': req.params.contest_id
         };
 

@@ -10,14 +10,15 @@ var router = express.Router();
 
 /* GET state name */
 router.get('/', function(req, res) {
-    if (!req.headers.access_token) {
+    console.log(req.headers['access-token']);
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     }
     var data = {
-        'access_token': req.headers.access_token
+        'access_token': req.headers['access-token']
     };
 
     // 사용자 블럭 목록 가져오는 프로세스
@@ -58,14 +59,14 @@ router.get('/', function(req, res) {
 
 /* GET city name */
 router.get('/:state_name', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     }
     var data = {
-        'access_token': req.headers.access_token,
+        'access_token': req.headers['access-token'],
         'state_name': req.params.state_name
     };
 
