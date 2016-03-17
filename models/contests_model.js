@@ -839,8 +839,11 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select_query = function() {
-                var select = [data.amount];
-                var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views FROM Contests WHERE contests_id IN (";
+                var select = [data.users_id, data.amount];
+                var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, " +
+                    "cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, " +
+                    "(SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = contests_id AND app_users_id = ?) AS is_apply " +
+                    "FROM Contests WHERE contests_id IN (";
 
                 // contests id 갯수만큼 where절에 추가하기
                 var length = 0;
