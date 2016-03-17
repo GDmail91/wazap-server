@@ -295,7 +295,8 @@ var contests_model = {
                         function (tran_callback) {
                             var select = [data.contest_id];
                             connection.query("SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, Users.profile_img, Users.kakao_id, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
-                                "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
+                                "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip, " +
+                                "(SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = contests_id AND app_users_id = " + data.users_id + ") AS is_apply " +
                                 "FROM Contests " +
                                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                                 "WHERE contests_id = ?", select, function (err, rows) {

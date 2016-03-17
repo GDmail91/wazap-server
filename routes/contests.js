@@ -22,7 +22,6 @@ router.get('/', function(req, res) {
             'start_id': req.query.start_id,
             'amount': parseInt(req.query.amount)
         };
-        console.log(req.headers);
 
         // 모집공고 목록 가져옴 (메인)
         var async = require('async');
