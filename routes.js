@@ -7,6 +7,7 @@ var search = require('./routes/search');
 var blocks = require('./routes/blocks');
 var facebook_oauth = require('./routes/facebook_oauth');
 var locate = require('./routes/locate');
+var weekly_list = require('./routes/weekly_list');
 
 module.exports = function(app){
     app.use('/', routes);
@@ -18,4 +19,5 @@ module.exports = function(app){
     app.use('/blocks', blocks);
     app.use('/facebook_oauth', facebook_oauth);
     app.use('/locate', locate);
+    app.use('/weekly_list', weekly_list);
 };

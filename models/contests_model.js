@@ -831,7 +831,7 @@ var contests_model = {
 
     /**
      * Get contests list index by array
-     * @param data (JSON) : start_id, amount
+     * @param data (JSON) : users_id, start_id, amount
      * @param arr (Array)
      * @param callback (Function)
      */
