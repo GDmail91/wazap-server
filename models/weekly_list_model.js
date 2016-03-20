@@ -23,7 +23,7 @@ var weekly_list_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select;
             var sql = "SELECT * FROM CONTEST ";
-console.log(data.start_id);
+
             if (typeof data.start_id == 'undefined') {
                 select = [data.amount];
                 sql += "ORDER BY DEADLINE_DATE DESC LIMIT ? ";

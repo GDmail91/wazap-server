@@ -842,7 +842,7 @@ var contests_model = {
             var select_query = function() {
                 var select = [data.users_id, data.amount];
                 var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, " +
-                    "cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, " +
+                    "cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
                     "(SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = contests_id AND app_users_id = ?) AS is_apply " +
                     "FROM Contests WHERE contests_id IN (";
 
