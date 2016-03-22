@@ -1,4 +1,5 @@
 var credentials = require('../credentials');
+var categories_model = require('./categories_model');
 var mysql = require('mysql');
 var pool = mysql.createPool({
     host    : credentials.mysql.host,
@@ -955,119 +956,6 @@ var contests_model = {
                 } else {
                     return callback({ result: false, msg: '글이 존재하지 않습니다.' });
                 }
-            });
-        });
-    }
-};
-
-var categories_model = {
-    /**
-     * Registration each contest category (Need connection to rollback
-     * @param connection (connection)
-     * @param data (JSON) : contests_id, category_name
-     * @param callback (Function)
-     */
-    reg_contest : function(connection, data, callback) {
-        // 모집글 별 카테고리 등록
-        // 가능한 카테고리명 ["디자인/UCC", "IT/개발", "마케팅/광고", "논문/문학", "게임"]
-        if (data.category_name == "디자인/UCC"
-        || "IT/개발"
-        || "마케팅/광고"
-        || "논문/문학"
-        || "게임") {
-            var insert = [data.contests_id, data.category_name];
-            var sql = "INSERT INTO Categories SET cat_contests_id = ?, category_name = ?";
-
-            // 카테고리명 별로 DB에 저장
-            connection.query(sql, insert, function (err) {
-                if (err) {
-                    connection.rollback(function () {
-                        console.error('rollback error');
-                        throw err;
-                    });
-                    return callback({result: false, msg: "카테고리를 저장하는데 실패했습니다. 원인: " + err});
-                }
-
-                return callback({result: true, msg: "카테고리 저장"});
-            });
-        } else {
-            return callback({ result: false, msg: "카테고리명이 잘못되었습니다." });
-        }
-    },
-
-    /**
-     * Delete categories by contest id
-     * @param connection (connection)
-     * @param data (JSON) : contests_id
-     * @param callback (Function)
-     */
-    delete_categories_by_contests : function(connection, data, callback) {
-        var select = [data.contests_id];
-        var sql = "DELETE FROM Categories WHERE cat_contests_id = ?";
-
-        // 카테고리명 별로 DB에 저장
-        connection.query(sql, select, function (err) {
-            if (err) {
-                connection.rollback(function () {
-                    console.error('rollback error');
-                    throw err;
-                });
-                return callback({result: false, msg: "카테고리를 삭제하는데 실패했습니다. 원인: " + err});
-            }
-
-            return callback({result: true, msg: "카테고리 삭제"});
-        });
-    },
-
-    /**
-     * Get categories by name
-     * @param data (JSON) : category_name
-     * @param callback (Function)
-     */
-    get_categories_by_name : function(data, callback) {
-        // 카테고리 명으로 목록 가져오기
-        pool.getConnection(function (err, connection) {
-            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
-
-            // 가능한 카테고리명 ["디자인/UCC", "IT/개발", "마케팅/광고", "논문/문학", "게임"]
-            var select = [data.category_name];
-            var sql = "SELECT * FROM Categories WHERE category_name = ?";
-
-            // 카테고리명 별로 DB에 저장
-            connection.query(sql, select, function (err, rows) {
-                if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: "카테고리를 가져오는데 실패했습니다. 원인: "+err });
-                }
-                connection.release();
-
-                return callback({ result: true, msg: "카테고리명별 목록", data: rows});
-            });
-        });
-    },
-
-    /**
-     * Get categories by id
-     * @param data (JSON) : contests_id
-     * @param callback (Function)
-     */
-    get_categories_by_id : function(data, callback) {
-        // 콘테스트 ID로 카테고리 명 가져오기
-        pool.getConnection(function (err, connection) {
-            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
-
-            var select = [data.contests_id];
-            var sql = "SELECT * FROM Categories WHERE cat_contests_id = ?";
-
-            // 카테고리명 별로 DB에 저장
-            connection.query(sql, select, function (err, rows) {
-                if (err) {
-                    connection.release();
-                    return callback({ result: false, msg: "카테고리를 가져오는데 실패했습니다. 원인: "+err });
-                }
-                connection.release();
-
-                return callback({ result: true, msg: "카테고리명 가져옴", data: rows});
             });
         });
     }

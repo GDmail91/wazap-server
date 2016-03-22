@@ -5,6 +5,7 @@
 var express = require('express');
 var contests_model = require('../models/contests_model');
 var users_model = require('../models/users_model');
+var categories_model = require('../models/categories_model');
 
 var router = express.Router();
 
@@ -237,6 +238,54 @@ router.get('/list/:writer_id', function(req, res) {
         res.statusCode = 200;
         res.send(dummy_data);
     });
+
+});
+
+/* GET contests list by category id */
+router.get('/categories/:category_id', function(req, res) {
+    if (!req.headers['access-token']) {
+        return res.send({
+            result: false,
+            msg: "로그인이 필요합니다."
+        });
+    } else {
+        var data = {
+            'access_token': req.headers['access-token']
+        };
+
+        // 신청자 목록 가져오는 프로세스
+        var async = require('async');
+        async.waterfall([
+                function(callback) {
+                    // 사용자 인증
+                    users_model.get_user_id(data, function(result) {
+                        if (result.result) {
+                            data.users_id = result.data.users_id;
+                            return callback(null);
+                        }
+                        else callback(result);
+                    });
+                },
+                function(callback) {
+                    // 신청서 정보 확인
+                    categories_model.get_categories_by_id(back_data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
+                }
+            ],
+            function(err, result) {
+                // 취소 결과 출력
+                if (err) return res.send(err);
+                var dummy_data = {
+                    result: true,
+                    msg: "신청목록 가져옴",
+                    data: result
+                };
+                res.statusCode = 200;
+                res.send(dummy_data);
+            });
+    }
 
 });
 
