@@ -10,18 +10,18 @@ var router = express.Router();
 
 /* GET search for title */
 router.get('/', function(req, res) {
-    if (!req.headers.access_token) {
+    if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
-        if (req.query.amount == undefined) req.query.amount = 3;
+        if (req.query.amount == undefined) req.query.amount = 10;
         var data = {
             'start_id': req.query.start_id,
             'amount': parseInt(req.query.amount),
             'search': req.query.search,
-            'access_token': req.headers.access_token
+            'access_token': req.headers['access-token']
         };
 
         // 지원서 마감하는 프로세스
