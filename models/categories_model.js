@@ -57,7 +57,7 @@ var categories_model = {
      */
     delete_categories_by_contests : function(connection, data, callback) {
         var select = [data.contests_id];
-        var sql = "DELETE FROM Categories WHERE cat_contests_id = ?";
+        var sql = "DELETE FROM Categories_Contests WHERE cat_contests_id = ?";
 
         // 카테고리명 별로 DB에 저장
         connection.query(sql, select, function (err) {
