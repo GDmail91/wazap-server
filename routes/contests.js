@@ -242,15 +242,19 @@ router.get('/list/:writer_id', function(req, res) {
 });
 
 /* GET contests list by category id */
-router.get('/categories/:category_id', function(req, res) {
+router.get('/categories', function(req, res) {
     if (!req.headers['access-token']) {
         return res.send({
             result: false,
             msg: "로그인이 필요합니다."
         });
     } else {
+        if (req.query.amount == undefined) req.query.amount = 3;
         var data = {
-            'access_token': req.headers['access-token']
+            'access_token': req.headers['access-token'],
+            'start_id': req.query.start_id,
+            'amount': parseInt(req.query.amount),
+            'category_name': req.query.category_name
         };
 
         // 신청자 목록 가져오는 프로세스
@@ -268,7 +272,14 @@ router.get('/categories/:category_id', function(req, res) {
                 },
                 function(callback) {
                     // 신청서 정보 확인
-                    categories_model.get_categories_by_id(data, function(result) {
+                    categories_model.get_categories_by_name(data, function(result) {
+                        if (result.result) return callback(null, result.data);
+                        else callback(result);
+                    });
+                },
+                function(back_data, callback) {
+                    // 신청서 정보 확인
+                    contests_model.get_contests_by_category_array(data, back_data, function(result) {
                         if (result.result) return callback(null, result.data);
                         else callback(result);
                     });

@@ -92,53 +92,63 @@ var categories_model = {
                             // 카테고리 ID 가져오기
                             // 가능한 카테고리명 ["광고/아이디어/마케팅", "디자인", "사진/UCC", "게임/소프트웨어", "해외", "기타"]
                             var select = [data.category_name];
-                            var sql = "SELECT * FROM Categories WHERE category_name = ?";
+                            var sql = "SELECT categories_id FROM Categories WHERE category_name = ?";
 
-                            // 카테고리명 별로 DB에 저장
+                            // 카테고리 ID들을 가져옴
                             connection.query(sql, select, function (err, rows) {
                                 if (err) {
-                                    connection.release();
-                                    return callback({ result: false, msg: "카테고리를 가져오는데 실패했습니다. 원인: "+err });
-                                }
-                                connection.release();
-
-                                return callback({ result: true, msg: "카테고리명별 목록", data: rows});
-                            });
-                            var select = ['Applies', data.contest_id, data.users_id];
-                            connection.query("DELETE FROM ?? WHERE app_contests_id = ? AND app_users_id = ?", select, function (err) {
-                                if (err) {
                                     connection.rollback(function () {
                                         console.error('rollback error');
-                                        return tran_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
                                     });
                                 }
-                                return tran_callback(null);
+                                tran_callback(null, rows);
                             });
                         },
-                        function (tran_callback) {
-                            var insert = ['Contests', data.contest_id];
+                        function (back_data, tran_callback) {
+                            var select = ['Categories_Contests'];
+                            var sql = "SELECT cat_con_id, cat_contests_id " +
+                                "FROM ?? " +
+                                "WHERE cat_categories_id IN (";
+                            if (back_data.length != 0) {
+                                var length = 0;
+                                back_data.forEach(function (val) {
+                                    if(length == 0) sql += val.categories_id;
+                                    else sql += "," + val.categories_id;
+                                    length ++;
+                                    if (length == back_data.length) {
+                                        sql += ")";
 
-                            connection.query("UPDATE ?? SET appliers = appliers - 1 WHERE contests_id = ?", insert, function (err) {
-                                if (err) {
-                                    connection.rollback(function () {
-                                        console.error('rollback error');
-                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
-                                    });
-                                }
-                                connection.commit(function (err) {
-                                    if (err) {
-                                        console.error(err);
-                                        connection.rollback(function () {
-                                            console.error('rollback error');
-                                            throw err;
+                                        connection.query(sql, select, function (err, rows) {
+                                            if (err) {
+                                                connection.rollback(function () {
+                                                    console.error('rollback error');
+                                                    return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                                });
+                                            }
+                                            connection.commit(function (err) {
+                                                if (err) {
+                                                    console.error(err);
+                                                    connection.rollback(function () {
+                                                        console.error('rollback error');
+                                                        throw err;
+                                                    });
+                                                    return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                                }
+                                                return tran_callback(null, { result: true, msg: "카테고리별 목록 가져옴", data: rows });
+                                            });
                                         });
-                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
                                     }
-                                    return tran_callback(null, { result: true, msg: "삭제 완료" });
                                 });
-                            });
+                            } else {
+                                connection.rollback(function () {
+                                    console.error('rollback error');
+                                    return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: 카테고리 ID가 없습니다.'});
+                                });
+                            }
                         }
                     ], function (err, result) {
+                        if (err) return callback(err);
                         callback(result);
                     });
                 }

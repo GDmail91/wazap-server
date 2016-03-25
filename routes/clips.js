@@ -44,7 +44,7 @@ router.get('/', function(req, res, next) {
             },
             function (back_data, callback) {
                 // 각 모집글 별로 정보 검색
-                contests_model.get_contests_by_array(data, back_data, function(result) {
+                contests_model.get_contests_by_clips_array(data, back_data, function(result) {
                     if (result.result) return callback(null, result.data);
                     else callback(result);
                 });
