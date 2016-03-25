@@ -268,7 +268,7 @@ router.get('/categories/:category_id', function(req, res) {
                 },
                 function(callback) {
                     // 신청서 정보 확인
-                    categories_model.get_categories_by_id(back_data, function(result) {
+                    categories_model.get_categories_by_id(data, function(result) {
                         if (result.result) return callback(null, result.data);
                         else callback(result);
                     });
@@ -607,13 +607,15 @@ router.post('/:contest_id/:applies_id', function(req, res) {
                 function( callback) {
                     // 신청서 정보 확인
                     contests_model.get_apply_info(data, function(result) {
-                        if (result.result) return callback(null, result.data);
+                        if (result.result) {
+                            data.is_check = result.data.is_check;
+                            return callback(null, result.data);
+                        }
                         else callback(result);
                     });
                 },
                 function(applier_info, callback) {
                     // 신청서 승낙/거절
-                    data.is_check = applier_info.is_check;
                     contests_model.accept_apply(data, function(result) {
                         if (result.result) return callback(null, result.data, applier_info);
                         else callback(result);

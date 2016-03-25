@@ -692,7 +692,7 @@ var contests_model = {
 
     /**
      * Accept or Defuse apply
-     * @param data (JSON) : is_check, applies_id
+     * @param data (JSON) : is_check, applies_id, contest_id
      * @param callback (Function)
      */
     accept_apply : function(data, callback) {
@@ -725,21 +725,11 @@ var contests_model = {
                             });
                         },
                         function (tran_callback) {
-                            var select = ['Applies', data.applies_id];
-                            connection.query("SELECT app_contests_id FROM ?? WHERE applies_id = ?", select, function (err, rows) {
-                                if (err) {
-                                    connection.rollback(function () {
-                                        console.error('rollback error');
-                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
-                                    });
-                                }
-                                return tran_callback(null, rows[0]);
-                            });
-                        },
-                        function (back_data, tran_callback) {
-                            var insert = ['Contests', back_data.app_contests_id];
+                            var insert = ['Contests', data.contest_id, data.contest_id];
 
-                            connection.query("UPDATE ?? SET members = members+1 WHERE contests_id = ?", insert, function (err) {
+                            connection.query("UPDATE ?? " +
+                                "SET members = (SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = ? AND is_check = true) " +
+                                "WHERE contests_id = ?", insert, function (err) {
                                 if (err) {
                                     connection.rollback(function () {
                                         console.error('rollback error');
