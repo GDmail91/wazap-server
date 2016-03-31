@@ -11,13 +11,12 @@ var router = express.Router();
 /* GET clips list */
 router.get('/', function(req, res, next) {
     if(req.query.amount == undefined) req.query.amount = 3;
-    var data;
-    // 로그인 한 사용자만 access_token을 가짐
-    if (req.headers['access-token']) data = { 'access_token': req.headers['access-token'] };
-    data = {
+    var data = {
         'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount)
     };
+    // 로그인 한 사용자만 access_token을 가짐
+    if (req.headers['access-token']) data.access_token = req.headers['access-token'];
 
     // 주간 목록 가져오는 프로세스
     var async = require('async');

@@ -10,16 +10,14 @@ var router = express.Router();
 
 /* GET search for title */
 router.get('/', function(req, res) {
-    var data;
-    // 로그인 한 사용자만 access_token을 가짐
-    if (req.headers['access-token']) data = { 'access_token': req.headers['access-token'] };
-
     if (req.query.amount == undefined) req.query.amount = 10;
-    data = {
+    var data = {
         'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount),
         'search': req.query.search
     };
+    // 로그인 한 사용자만 access_token을 가짐
+    if (req.headers['access-token'] != undefined) data.access_token = req.headers['access-token'];
 
     // 지원서 마감하는 프로세스
     var async = require('async');

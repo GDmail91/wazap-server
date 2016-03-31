@@ -11,14 +11,14 @@ var router = express.Router();
 
 /* GET contests list */
 router.get('/', function(req, res) {
-    var data;
-    // 로그인 한 사용자만 access_token을 가짐
-    if (req.headers['access-token']) data = { 'access_token': req.headers['access-token'] };
     if (req.query.amount == undefined) req.query.amount = 3;
-    data = {
+    var data = {
         'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount)
     };
+    // 로그인 한 사용자만 access_token을 가짐
+    if (req.headers['access-token']) data.access_token = req.headers['access-token'];
+
 
     // 모집공고 목록 가져옴 (메인)
     var async = require('async');
