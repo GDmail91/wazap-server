@@ -14,16 +14,21 @@ var pool = mysql.createPool({
 var contests_model = {
     /**
      * Contests recently list (MAIN)
-     * @param data (JSON) : start_id, amount
+     * @param data (JSON) : start_id, amount, users_id
      * @param callback (Function)
      */
     get_contests_list : function (data, callback) {
         pool.getConnection(function (err, connection) {
-            var select;
-            var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
-                "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
-                "FROM Contests " +
-                "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
+            var select, sql;
+            if (typeof data.users_id == 'undefined') {
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
+                    "FROM Contests ";
+            } else {
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
+                    "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
+                    "FROM Contests " +
+                    "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
+            }
             if (data.start_id == undefined) {
                 select = [data.amount];
                 sql += "ORDER BY postdate DESC LIMIT ? ";
@@ -942,11 +947,16 @@ var contests_model = {
      */
     get_contests_by_title : function (data, callback) {
         pool.getConnection(function (err, connection) {
-            var select;
-            var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
-                "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
-                "FROM Contests " +
-                "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
+            var select, sql;
+            if (typeof data.users_id == "undefined") {
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
+                    "FROM Contests ";
+            } else {
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
+                    "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
+                    "FROM Contests " +
+                    "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
+            }
             if (data.start_id == undefined) {
                 select = [data.search, data.amount];
                 sql += "WHERE title LIKE ? ORDER BY postdate DESC LIMIT ? ";

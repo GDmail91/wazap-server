@@ -11,44 +11,48 @@ var router = express.Router();
 
 /* GET contests list */
 router.get('/', function(req, res) {
-    if (!req.headers['access-token']) {
-        return res.send({
-            result: false,
-            msg: "로그인이 필요합니다."
-        });
-    } else {
-        if (req.query.amount == undefined) req.query.amount = 3;
-        var data = {
-            'access_token': req.headers['access-token'],
-            'start_id': req.query.start_id,
-            'amount': parseInt(req.query.amount)
-        };
+    var data;
+    // 로그인 한 사용자만 access_token을 가짐
+    if (req.headers['access-token']) data = { 'access_token': req.headers['access-token'] };
+    if (req.query.amount == undefined) req.query.amount = 3;
+    data = {
+        'start_id': req.query.start_id,
+        'amount': parseInt(req.query.amount)
+    };
 
-        // 모집공고 목록 가져옴 (메인)
-        var async = require('async');
-        async.waterfall([
-            function(callback) {
-                // 사용자 인증
-                users_model.get_user_id(data, function(result) {
-                    if (result.result) return callback(null, result.data);
-                    else callback(result);
-                });
-            },
-            function(back_data, callback) {
-                data.users_id = back_data.users_id;
-                contests_model.get_contests_list(data, function (result) {
-                    if (result.result) return callback(null, result);
-                    callback(result);
-                });
-            }], function(err, result) {
-                if (err) {
-                    return res.send({ result: false, msg: err.msg });
+    // 모집공고 목록 가져옴 (메인)
+    var async = require('async');
+    async.waterfall([
+        function(callback) {
+            // 사용자 인증
+            if (typeof data.access_token == 'undefined') return callback(null); // 익명인 경우 패스
+            users_model.get_user_id(data, function(result) {
+                if (result.result) {
+                    data.users_id = result.data.users_id;
+                    return callback(null);
                 }
-                res.statusCode = 200;
-                res.send(result);
+                else callback(result);
             });
+        },
+        function(callback) {
+            contests_model.get_contests_list(data, function (result) {
+                if (result.result ) return callback(null, result);
+                callback(result);
+            });
+        }], function(err, result) {
+            if (err) { return res.send({ result: false, msg: err.msg }); }
+            var dummy_data = {
+                result: true,
+                msg: result.msg,
+                data: result.data
+            };
+            // 익명인 경우 anonymous 값 추가
+            if (typeof data.access_token == 'undefined') dummy_data.anonymous = true;
+            res.statusCode = 200;
+            res.send(dummy_data);
+        });
 
-    }
+
 });
 
 /* POST contest writing */

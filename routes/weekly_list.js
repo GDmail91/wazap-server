@@ -11,8 +11,10 @@ var router = express.Router();
 /* GET clips list */
 router.get('/', function(req, res, next) {
     if(req.query.amount == undefined) req.query.amount = 3;
-    var data = {
-        'access_token': req.headers['access-token'],
+    var data;
+    // 로그인 한 사용자만 access_token을 가짐
+    if (req.headers['access-token']) data = { 'access_token': req.headers['access-token'] };
+    data = {
         'start_id': req.query.start_id,
         'amount': parseInt(req.query.amount)
     };
@@ -21,8 +23,8 @@ router.get('/', function(req, res, next) {
     var async = require('async');
     async.waterfall([
         function (callback) {
-            if (typeof data.access_token == 'undefined') return callback(null);
             // 사용자 인증
+            if (typeof data.access_token == 'undefined')  return callback(null); // 익명인 경우 패스
             users_model.get_user_id(data, function(result) {
                 if (result.result) {
                     data.users_id = result.data.users_id;
@@ -46,6 +48,8 @@ router.get('/', function(req, res, next) {
             msg: "주간 목록 가져옴",
             data: result
         };
+        // 익명인 경우 anonymous 값 추가
+        if (typeof data.access_token == 'undefined') dummy_data.anonymous = true;
         res.statusCode = 200;
         res.send(dummy_data);
     });
