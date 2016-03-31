@@ -21,8 +21,9 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             var select, sql;
             if (typeof data.users_id == 'undefined') {
-                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
-                    "FROM Contests ";
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
+                    "FROM Contests " +
+                    "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
             } else {
                 sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
                     "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
@@ -949,8 +950,9 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             var select, sql;
             if (typeof data.users_id == "undefined") {
-                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
-                    "FROM Contests ";
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
+                    "FROM Contests " +
+                    "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
             } else {
                 sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
                     "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
