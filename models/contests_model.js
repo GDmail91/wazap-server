@@ -671,17 +671,17 @@ var contests_model = {
 
     /**
      * Get apply infomation
-     * @param data (JSON) : contest_id, users_id
+     * @param data (JSON) : contest_id, applies_id
      * @param callback (Function)
      */
     get_apply_info : function(data, callback) {
         // 신청서 정보 가져옴
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
-            var select = ['Applies', data.contest_id, data.users_id];
+            var select = ['Applies', data.contest_id, data.applies_id];
             connection.query("SELECT applies_id, app_users_id, Applies.postdate, is_check, Contests.title FROM ?? " +
                 "INNER JOIN Contests ON Applies.app_contests_id = Contests.contests_id " +
-                "WHERE app_contests_id = ?", select, function (err, rows) {
+                "WHERE app_contests_id = ? AND applies_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
