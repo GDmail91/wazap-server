@@ -23,10 +23,12 @@ router.get('/', function(req, res) {
     var async = require('async');
     async.waterfall([
             function (callback) {
-                // Validation (search 목록만 있는지)
-                var validation = /[a-힣]/;
+                // Validation (특수문자가 없는지)
+                var validation = /[\{\}\[\]\/?.,;:|\(\)*~`!^\-_+<>@\#$%&\\\=\'\"]/;
+
                 if (data.search == undefined) return callback({result: false, msg: '검색명이 없습니다.'});
-                if (!validation.test(data.search)) return callback({result: false, msg: '문자로만 검색해 주세요'});
+                console.log(!validation.test(data.search));
+                if (validation.test(data.search)) return callback({result: false, msg: '문자로만 검색해 주세요'});
                 data.search = '%' + data.search + '%';
                 callback(null);
             },
