@@ -26,7 +26,7 @@ var weekly_list_model = {
 
             if (typeof data.start_id == 'undefined') {
                 select = [data.amount];
-                sql += "ORDER BY DEADLINE_DATE DESC LIMIT ? ";
+                sql += "ORDER BY DEADLINE_DATE ASC LIMIT ? ";
             } else {
                 select = [data.start_id, data.amount];
                 sql += "WHERE ID <= ? ORDER BY DEADLINE_DATE ASC LIMIT ? ";
