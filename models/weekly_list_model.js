@@ -29,7 +29,7 @@ var weekly_list_model = {
                 sql += "ORDER BY DEADLINE_DATE DESC LIMIT ? ";
             } else {
                 select = [data.start_id, data.amount];
-                sql += "WHERE ID <= ? ORDER BY DEADLINE_DATE DESC LIMIT ? ";
+                sql += "WHERE ID <= ? ORDER BY DEADLINE_DATE ASC LIMIT ? ";
             }
             connection.query(sql, select, function (err, rows) {
                 if (err) {
