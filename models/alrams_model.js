@@ -119,6 +119,36 @@ var alrams_model = {
                 callback({ result: true, msg: '알림 삽입' });
             });
         });
+    },
+
+    /**
+     * Set read alarm
+     * @param data (JSON) : users_id, alarm_id
+     * @param callback (Function)
+     */
+    set_read_alram : function(data, callback) {
+        // Alram DB에 알림 저장
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                connection.release();
+                return callback({ result: false, msg: '알림 처리중 오류가 발생했습니다. 원인: ' + err });
+            }
+
+            var update = ['Alram',
+                data.alarm_id,
+                data.users_id ];
+
+            connection.query("UPDATE ?? SET " +
+                "is_check = 1 " +
+                "WHERE alram_id = ? AND alram_users_id = ?", update, function (err) {
+                if (err) {
+                    connection.release();
+                    return callback({ result: false, msg: '알림 읽기 처리중 오류가 발생했습니다. 원인: ' + err });
+                }
+                connection.release();
+                callback({ result: true, msg: '읽음 처리 완료' });
+            });
+        });
     }
 };
 
