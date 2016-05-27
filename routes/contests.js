@@ -621,7 +621,7 @@ router.post('/:contest_id/:applies_id', function(req, res) {
                 },
                 function( callback) {
                     // 신청서 정보 확인
-                    contests_model.get_apply_info(data, function(result) {
+                    contests_model.get_apply_info_by_id(data, function(result) {
                         if (result.result) {
                             data.is_check = result.data.is_check;
                             return callback(null, result.data);

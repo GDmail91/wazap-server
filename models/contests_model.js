@@ -697,6 +697,33 @@ var contests_model = {
     },
 
     /**
+     * Get apply infomation by id
+     * @param data (JSON) : applies_id
+     * @param callback (Function)
+     */
+    get_apply_info_by_id : function(data, callback) {
+        // 신청서 정보 가져옴
+        pool.getConnection(function (err, connection) {
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
+            var select = ['Applies', data.applies_id];
+            connection.query("SELECT applies_id, app_users_id, Applies.postdate, is_check, Contests.title FROM ?? " +
+                "INNER JOIN Contests ON Applies.app_contests_id = Contests.contests_id " +
+                "WHERE applies_id = ?", select, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return callback({ result: false, msg: "신청서 정보를 가져오는데 실패했습니다. 원인: " + err });
+                }
+
+                if (rows.length != 0) {
+                    return callback({ result: true, msg: "신청서 정보 가져옴", data: rows[0] });
+                } else {
+                    return callback({ result: false, msg: '신청한 공고가 없습니다.' });
+                }
+            });
+        });
+    },
+
+    /**
      * Accept or Defuse apply
      * @param data (JSON) : is_check, applies_id, contest_id
      * @param callback (Function)
