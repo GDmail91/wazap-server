@@ -920,50 +920,54 @@ var contests_model = {
         // 각 모집글 별로 정보 검색
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
-            var select_query = function() {
-                var select = [data.users_id, data.amount];
+            var select_query = function () {
+                var select = [data.users_id, data.users_id, data.amount];
                 var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, " +
                     "cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
-                    "(SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = contests_id AND app_users_id = ?) AS is_apply " +
+                    "(SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = contests_id AND app_users_id = ?) AS is_apply, " +
+                    "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = ?) AS is_clip " +
                     "FROM Contests WHERE contests_id IN (";
 
                 // contests id 갯수만큼 where절에 추가하기
                 var length = 0;
                 contests_list.forEach(function (val) {
-                    if(length == 0) sql += val.cat_contests_id;
+                    if (length == 0) sql += val.cat_contests_id;
                     else sql += "," + val.cat_contests_id;
-                    length ++;
+                    length++;
                     if (length == contests_list.length) {
                         sql += ") ORDER BY postdate DESC LIMIT ?";
 
                         var query = connection.query(sql, select, function (err, rows) {
-                            console.log(query);
                             if (err) {
                                 connection.release();
-                                return callback({ result: false, msg: "카테고리별 목록 정보를 가져오는데 실패했습니다. 원인: "+err });
+                                return callback({result: false, msg: "카테고리별 목록 정보를 가져오는데 실패했습니다. 원인: " + err});
                             }
                             connection.release();
 
-                            return callback({ result: true, msg: "카테고리별 목록 가져옴", data: rows });
+                            return callback({result: true, msg: "카테고리별 목록 가져옴", data: rows});
                         });
                     }
                 });
             };
 
             var contests_list=  [];
-            if (data.start_id == undefined) {
-                contests_list = arr;
-                select_query();
+            if (arr.length != 0) {
+                if (data.start_id == undefined) {
+                    contests_list = arr;
+                    select_query();
+                } else {
+                    var count = 1;
+                    arr.forEach(function (val, index) {
+                        if (val.cat_contests_id <= data.start_id) {
+                            contests_list[index] = {cat_contests_id: val.cat_contests_id};
+                        }
+                        if (count == arr.length) {
+                            select_query();
+                        } else count++;
+                    });
+                }
             } else {
-                var count = 1;
-                arr.forEach(function (val, index) {
-                    if (val.cat_contests_id <= data.start_id) {
-                        contests_list[index] = { cat_contests_id: val.cat_contests_id };
-                    }
-                    if (count == arr.length) {
-                        select_query();
-                    } else count++;
-                });
+                return callback({result: false, msg: "카테고리별 목록 정보를 가져오는데 실패했습니다. 원인: 목록이 없습니다."});
             }
         });
     },
