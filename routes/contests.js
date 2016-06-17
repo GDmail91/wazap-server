@@ -79,11 +79,12 @@ router.post('/', function(req, res) {
         // 글 작성 프로세스
         var async = require('async');
         async.waterfall([
-                /*function(callback) {
+                function(callback) {
                     // 유효성 검사
-                    if (data.categories == undefined) data.categories = [];
+                    if (data.categories == undefined)
+                        callback({ result: false, msg: '필요한 데이터가 부족합니다.' });
 
-                    var validation = /[a-힣]/;
+                    /*var validation = /[a-힣]/;
                     var Validator = require('validator');
                     if(validation.test(data.access_token) // character only
                     && validation.test(data.title) // character only
@@ -91,8 +92,8 @@ router.post('/', function(req, res) {
                     && validation.test(data.cover)) // character only
                         callback({ result: false, msg: '데이터 타입이 잘못되었습니다.' });
                     else
-                        callback(null);
-                },*/
+                        callback(null);*/
+                },
                 function(callback) {
                     // 사용자 인증
                     users_model.get_user_id(data, function(result) {
