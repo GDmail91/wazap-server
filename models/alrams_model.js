@@ -1,4 +1,5 @@
 var credentials = require('../credentials');
+var fcm_control = require('../fcm/fcm_control')
 var mysql = require('mysql');
 var pool = mysql.createPool({
     host    : credentials.mysql.host,
@@ -63,24 +64,32 @@ var alrams_model = {
                 return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
             }
 
+            var alarm_str = '님이 ['+ data.title +']에 신청하였습니다.';
             var insert = ['Alram',
                 data.cont_writer,
                 users_id,
-                '님이 ['+ data.title +']에 신청하였습니다.',
-                '/contests/list/'+data.cont_writer];
+                alarm_str,
+                '/contests/list/'+data.cont_writer ];
 
-            connection.query("INSERT INTO ?? SET " +
-                "`alram_users_id` = ?, " +
-                "`alram_target_id` = ?, " +
-                "`msg` = ?, " +
-                "`msg_url` = ?, " +
-                "`alramdate` = NOW()", insert, function (err) {
-                if (err) {
+            fcm_control(users_id, alarm_str, function(err, httpResponse, body) {
+                if (err)
+                    connection.rollback(function () {
+                        console.error('rollback error');
+                        return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: '+err });
+                    });
+                connection.query("INSERT INTO ?? SET " +
+                    "`alram_users_id` = ?, " +
+                    "`alram_target_id` = ?, " +
+                    "`msg` = ?, " +
+                    "`msg_url` = ?, " +
+                    "`alramdate` = NOW()", insert, function (err) {
+                    if (err) {
+                        connection.release();
+                        return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
+                    }
                     connection.release();
-                    return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
-                }
-                connection.release();
-                callback({ result: true, msg: '알림 삽입' });
+                    callback({ result: true, msg: '알림 삽입' });
+                });
             });
         });
     },
@@ -99,24 +108,32 @@ var alrams_model = {
                 return callback({ result: false, msg: '알림 처리중 오류가 발생했습니다. 원인: ' + err });
             }
 
+            var alarm_str = '님이 ['+ data.title +'] 수락하였습니다.';
             var insert = ['Alram',
                 data.app_users_id,
                 users_id,
-                '님이 ['+ data.title +'] 수락하였습니다.',
+                alarm_str,
                 '/contests/applications'];
 
-            connection.query("INSERT INTO ?? SET " +
-                "`alram_users_id` = ?, " +
-                "`alram_target_id` = ?, " +
-                "`msg` = ?, " +
-                "`msg_url` = ?, " +
-                "`alramdate` = NOW()", insert, function (err) {
-                if (err) {
+            fcm_control(users_id, alarm_str, function(err, httpResponse, body) {
+                if (err)
+                    connection.rollback(function () {
+                        console.error('rollback error');
+                        return callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: '+err });
+                    });
+                connection.query("INSERT INTO ?? SET " +
+                    "`alram_users_id` = ?, " +
+                    "`alram_target_id` = ?, " +
+                    "`msg` = ?, " +
+                    "`msg_url` = ?, " +
+                    "`alramdate` = NOW()", insert, function (err) {
+                    if (err) {
+                        connection.release();
+                        return callback({ result: false, msg: '알림 처리중 오류가 발생했습니다. 원인: ' + err });
+                    }
                     connection.release();
-                    return callback({ result: false, msg: '알림 처리중 오류가 발생했습니다. 원인: ' + err });
-                }
-                connection.release();
-                callback({ result: true, msg: '알림 삽입' });
+                    callback({ result: true, msg: '알림 삽입' });
+                });
             });
         });
     },
