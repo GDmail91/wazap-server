@@ -71,7 +71,7 @@ var alrams_model = {
                 alarm_str,
                 '/contests/list/'+data.cont_writer ];
 
-            fcm_control(users_id, alarm_str, function(err, httpResponse, body) {
+            fcm_control(data.cont_writer, alarm_str, function(err, httpResponse, body) {
                 if (err)
                     connection.rollback(function () {
                         console.error('rollback error');
@@ -115,7 +115,7 @@ var alrams_model = {
                 alarm_str,
                 '/contests/applications'];
 
-            fcm_control(users_id, alarm_str, function(err, httpResponse, body) {
+            fcm_control(data.app_users_id, alarm_str, function(err, httpResponse, body) {
                 if (err)
                     connection.rollback(function () {
                         console.error('rollback error');
