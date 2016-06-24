@@ -8,9 +8,7 @@ var credentials = require("../credentials.js");
 module.exports = function(user_id, message, callback) {
     var fcm_data = {
         to: "/topics/"+user_id,
-        data: {
-            message : message
-        }
+        data: message
     };
 
     request.post({
