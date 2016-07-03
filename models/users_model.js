@@ -89,7 +89,7 @@ var users_model = {
         pool.getConnection(function (err, connection) {
             var select = [data.user_id];
 
-            connection.query("SELECT username, profile_img, major, skill, school, locate, kakao_id, introduce, exp, age FROM Users WHERE users_id = ?", select, function (err, rows) {
+            connection.query("SELECT users_id, username, profile_img, major, skill, school, locate, kakao_id, introduce, exp, age FROM Users WHERE users_id = ?", select, function (err, rows) {
                 if (err) {
                     connection.release();
                     return callback({ result: false, msg: "사용자 정보를 가져오는데 실패했습니다. 원인: "+err });
