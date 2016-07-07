@@ -408,11 +408,11 @@ var contests_model = {
 
                                                 length++;
                                                 if (length == rows.length) {
-                                                    dummy_data = {
+                                                    return callback(dummy_data = {
                                                         result : true,
                                                         msg : "상세 목록 가져옴",
                                                         data : rows[0]
-                                                    };
+                                                    });
                                                 }
 
                                             } else {
@@ -1167,11 +1167,11 @@ var contests_model = {
 
                                 length++;
                                 if (length == rows.length) {
-                                    dummy_data = {
+                                    return callback(dummy_data = {
                                         result: true,
                                         msg: "검색 목록 가져옴",
                                         data: rows
-                                    };
+                                    });
                                 }
 
                             } else {
@@ -1183,12 +1183,11 @@ var contests_model = {
                         });
                     });
                 } else {
-                    dummy_data = {
+                    return callback(dummy_data = {
                         result: false,
                         msg: "검색 정보가 없습니다."
-                    };
+                    });
                 }
-                callback(dummy_data);
             });
         });
     },
