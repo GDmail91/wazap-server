@@ -33,7 +33,7 @@ var categories_model = {
                 "Categories_Contests.cat_categories_id = (SELECT categories_id FROM Categories WHERE category_name = ?)";
 
             // 카테고리명 별로 DB에 저장
-            connection.query(sql, insert, function (err) {
+            connection.query(sql, insert, function (err, rows) {
                 if (err) {
                     connection.rollback(function () {
                         console.error('rollback error');
@@ -42,7 +42,7 @@ var categories_model = {
                     return callback({result: false, msg: "카테고리를 저장하는데 실패했습니다. 원인: " + err});
                 }
 
-                return callback({result: true, msg: "카테고리 저장"});
+                return callback({result: true, msg: "카테고리 저장", data: { category_id: rows.insertId }});
             });
         } else {
             return callback({ result: false, msg: "카테고리명이 잘못되었습니다." });
@@ -167,7 +167,7 @@ var categories_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
 
             var select = [data.contests_id];
-            var sql = "SELECT * FROM Categories WHERE cat_contests_id = ?";
+            var sql = "SELECT * FROM Categories_Contests WHERE cat_contests_id = ?";
 
             // 카테고리명 별로 DB에 저장
             connection.query(sql, select, function (err, rows) {
@@ -178,6 +178,35 @@ var categories_model = {
                 connection.release();
 
                 return callback({ result: true, msg: "카테고리명 가져옴", data: rows});
+            });
+        });
+    },
+
+    get_category_name_by_id : function(data, callback) {
+        // 카테고리 이름 가져오기
+        pool.getConnection(function (err, connection) {
+            if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
+
+            var select = [data.contests_id];
+            var sql = "SELECT cat_con.cat_con_id, cat_con.cat_contests_id, cat.category_name " +
+                "FROM Categories_Contests AS cat_con " +
+                "INNER JOIN Categories AS cat " +
+                "ON cat_con.cat_categories_id = cat.categories_id " +
+                "WHERE cat_con.cat_contests_id = ?";
+
+            // 카테고리명 별로 DB에 저장
+            connection.query(sql, select, function (err, rows) {
+                if (err) {
+                    connection.release();
+                    return callback({ result: false, msg: "카테고리를 가져오는데 실패했습니다. 원인: "+err });
+                }
+                connection.release();
+
+                var result = [];
+                rows.forEach(function(val) {
+                    result.push(val.category_name);
+                });
+                return callback({ result: true, msg: "카테고리명 가져옴", data: result});
             });
         });
     }

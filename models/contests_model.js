@@ -21,11 +21,11 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             var select, sql;
             if (typeof data.users_id == 'undefined') {
-                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories1, categories2, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
             } else {
-                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories1, categories2, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
                     "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
@@ -47,18 +47,39 @@ var contests_model = {
 
                 var dummy_data;
                 if (rows.length != 0) {
-                    dummy_data = {
-                        result: true,
-                        msg: "모집글 목록 가져옴",
-                        data: rows
-                    };
+
+                    var length = 0;
+                    rows.forEach(function(val, index) {
+                        categories_model.get_category_name_by_id({ contests_id: val.contests_id }, function(result) {
+                            if (result.result) {
+                                rows[index].categories1 = result.data[0];
+                                rows[index].categories2 = result.data[1];
+
+                                rows[index].categories = JSON.stringify(result.data);
+
+                                length++;
+                                if (length == rows.length) {
+                                    return callback(dummy_data = {
+                                        result: true,
+                                        msg: "모집글 목록 가져옴",
+                                        data: rows
+                                    });
+                                }
+
+                            } else {
+                                return callback(dummy_data = {
+                                    result: false,
+                                    msg: result.msg
+                                });
+                            }
+                        });
+                    });
                 } else {
-                    dummy_data = {
+                    return callback(dummy_data = {
                         result: false,
                         msg: "모집글 정보가 없습니다."
-                    };
+                    });
                 }
-                callback(dummy_data);
             });
         });
     },
@@ -88,7 +109,6 @@ var contests_model = {
                                     data.cont_title,
                                     data.recruitment,
                                     data.hosts,
-                                    JSON.stringify(data.categories),
                                     data.period,
                                     data.cover,
                                     data.cont_locate,
@@ -99,7 +119,6 @@ var contests_model = {
                                     "`cont_title` = ?, " +
                                     "`recruitment` = ?, " +
                                     "`hosts` = ?, " +
-                                    "`categories` = ?, " +
                                     "`period` = ?, " +
                                     "`cover` = ?, " +
                                     "`cont_locate` = ?, " +
@@ -115,19 +134,21 @@ var contests_model = {
                                     tran_callback(null, rows.insertId);
                                 });
                             },
-                            function (insert_id, tran_callback) {
+                            function (contests_id, tran_callback) {
                                 // 모집글의 카테고리별로 DB에 저장
                                 if (data.categories.length != 0) {
                                     var length = 0;
+                                    var category_id = [];
                                     data.categories.forEach(function (val) {
                                         categories_model.reg_contest(connection, { // 트랜잭션 처리 가능하도록 connection 변수 넣어줌
-                                            contests_id: insert_id,
+                                            contests_id: contests_id,
                                             category_name: val
                                         }, function (result) {
                                             if (result.result) {
                                                 length++;
+                                                category_id.push(result.data.category_id);
                                                 if (length == data.categories.length) {
-                                                    return tran_callback(null, { result: true, msg: '저장 성공' });
+                                                    return tran_callback(null, contests_id, category_id);
                                                 }
                                             } else {
                                                 return tran_callback({ result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err });
@@ -137,6 +158,43 @@ var contests_model = {
                                 } else {
                                     return tran_callback(null, { result: true, msg: '저장 성공' });
                                 }
+                            },
+                            function (contests_id, category_id, tran_callback) {
+                                var update = [];
+                                update.push('Contests');
+                                var query = "";
+                                if (category_id.length == 2) {
+                                    update.push(category_id[0],
+                                                category_id[1],
+                                                contests_id);
+
+                                    query = "UPDATE ?? SET " +
+                                        "`categories1` = ?, " +
+                                        "`categories2` = ? " +
+                                        "WHERE contests_id=?"
+                                } else if (category_id.length == 1) {
+                                    update.push(category_id[0],
+                                                contests_id);
+
+                                    query = "UPDATE ?? SET " +
+                                        "`categories1` = ? " +
+                                        "WHERE contests_id=?"
+                                } else {
+                                    return tran_callback(null, { result: true, msg: '저장 성공' });
+                                }
+
+                                connection.query(query, update, function (err, rows) {
+                                    if (err) {
+                                        connection.rollback(function () {
+                                            console.error('rollback error');
+                                        });
+
+                                        return tran_callback({result: false, msg: '처리중 오류가 발생했습니다. 원인: ' + err});
+                                    }
+
+
+                                    return tran_callback(null, { result: true, msg: '저장 성공' });
+                                });
                             }],
                         function (err, result) {
                             if (err) return err;

@@ -97,9 +97,7 @@ router.post('/', function(req, res) {
                 },
                 function(callback) {
                     // 사용자 인증
-                    console.log("여기");
                     users_model.get_user_id(data, function(result) {
-                        console.log("여기");
                         if (result.result) return callback(null, result.data);
                         else callback(result);
                     });
@@ -107,7 +105,6 @@ router.post('/', function(req, res) {
                 function(back_data, callback) {
                     // DB에 모집 데이터 저장
                     data.users_id = back_data.users_id;
-                    console.log("여기");
                     contests_model.set_contests_recruit(data, function(result) {
                         if (result.result) return callback(null);
                         else callback(result);
