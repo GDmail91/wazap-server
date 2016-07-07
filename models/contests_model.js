@@ -408,7 +408,7 @@ var contests_model = {
 
                                                 length++;
                                                 if (length == rows.length) {
-                                                    return callback(dummy_data = {
+                                                    return tran_callback(null, {
                                                         result : true,
                                                         msg : "상세 목록 가져옴",
                                                         data : rows[0]
@@ -416,7 +416,7 @@ var contests_model = {
                                                 }
 
                                             } else {
-                                                return callback(dummy_data = {
+                                                return tran_callback(dummy_data = {
                                                     result: false,
                                                     msg: result.msg
                                                 });
@@ -424,12 +424,11 @@ var contests_model = {
                                         });
                                     });
                                 } else {
-                                    dummy_data = {
+                                    return tran_callback(dummy_data = {
                                         result: false,
                                         msg: "모집글 정보가 없습니다."
-                                    };
+                                    });
                                 }
-                                return tran_callback(null, dummy_data);
                             });
                         },
                         function (dummy_data, tran_callback) {
