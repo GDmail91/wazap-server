@@ -47,7 +47,7 @@ var contests_model = {
 
                 var dummy_data;
                 if (rows.length != 0) {
-
+                    // 카테고리 이름 파싱
                     var length = 0;
                     rows.forEach(function(val, index) {
                         categories_model.get_category_name_by_id({ contests_id: val.contests_id }, function(result) {
@@ -224,7 +224,7 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             if (err) return callback({ result: false, msg: "에러발생. 원인: "+err });
             var select = [data.users_id];
-            connection.query("SELECT applies_id, contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish " +
+            connection.query("SELECT applies_id, contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories1, categories2, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish " +
                 "FROM Contests, Users, Applies " +
                 "WHERE app_users_id = ? " +
                 "AND Applies.app_contests_id = Contests.contests_id " +
@@ -235,7 +235,29 @@ var contests_model = {
                 }
 
                 if (rows.length != 0) {
-                    return callback({ result:true, msg: "신청서 정보 목록", data: rows });
+                    // 카테고리 이름 파싱
+                    var length = 0;
+                    rows.forEach(function(val, index) {
+                        categories_model.get_category_name_by_id({ contests_id: val.contests_id }, function(result) {
+                            if (result.result) {
+                                rows[index].categories1 = result.data[0];
+                                rows[index].categories2 = result.data[1];
+
+                                rows[index].categories = JSON.stringify(result.data);
+
+                                length++;
+                                if (length == rows.length) {
+                                    return callback({ result:true, msg: "신청서 정보 목록", data: rows });
+                                }
+
+                            } else {
+                                return callback({
+                                    result: false,
+                                    msg: result.msg
+                                });
+                            }
+                        });
+                    });
                 } else {
                     return callback({ result: false, msg: '신청한 공고가 없습니다.' });
                 }
@@ -251,7 +273,7 @@ var contests_model = {
     get_contest_info : function(data, callback) {
         // 모집글 정보 가져옴
         pool.getConnection(function (err, connection) {
-            var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
+            var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories1, categories2, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id IN (";
 
@@ -359,7 +381,7 @@ var contests_model = {
                     async.waterfall([
                         function (tran_callback) {
                             var select = [data.contest_id];
-                            connection.query("SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, Users.profile_img, Users.kakao_id, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
+                            connection.query("SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, Users.profile_img, Users.kakao_id, hosts, categories1, categories2, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
                                 "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip, " +
                                 "(SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = contests_id AND app_users_id = " + data.users_id + ") AS is_apply " +
                                 "FROM Contests " +
@@ -374,11 +396,33 @@ var contests_model = {
 
                                 var dummy_data;
                                 if (rows.length != 0) {
-                                    dummy_data = {
-                                        result : true,
-                                        msg : "상세 목록 가져옴",
-                                        data : rows[0]
-                                    };
+                                    // 카테고리 이름 파싱
+                                    var length = 0;
+                                    rows.forEach(function(val, index) {
+                                        categories_model.get_category_name_by_id({ contests_id: val.contests_id }, function(result) {
+                                            if (result.result) {
+                                                rows[index].categories1 = result.data[0];
+                                                rows[index].categories2 = result.data[1];
+
+                                                rows[index].categories = JSON.stringify(result.data);
+
+                                                length++;
+                                                if (length == rows.length) {
+                                                    dummy_data = {
+                                                        result : true,
+                                                        msg : "상세 목록 가져옴",
+                                                        data : rows[0]
+                                                    };
+                                                }
+
+                                            } else {
+                                                return callback(dummy_data = {
+                                                    result: false,
+                                                    msg: result.msg
+                                                });
+                                            }
+                                        });
+                                    });
                                 } else {
                                     dummy_data = {
                                         result: false,
@@ -430,7 +474,7 @@ var contests_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select = [data.contest_id, data.users_id];
 
-            connection.query("SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
+            connection.query("SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories1, categories2, period, cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish FROM Contests " +
                 "INNER JOIN Users ON Contests.cont_writer = Users.users_id " +
                 "WHERE contests_id = ? AND cont_writer = ?", select, function (err, rows) {
                 if (err) {
@@ -468,12 +512,13 @@ var contests_model = {
                     var async = require('async');
                     async.waterfall([
                             function (tran_callback) {
-                                var insert = ['Contests',
+                                var update = ['Contests',
                                     data.title,
                                     data.cont_title,
                                     data.recruitment,
                                     data.hosts,
-                                    JSON.stringify(data.categories),
+                                    data.categories[0],
+                                    data.categories[1],
                                     data.period,
                                     data.cover,
                                     data.cont_locate,
@@ -484,12 +529,13 @@ var contests_model = {
                                     "`cont_title` = ?, " +
                                     "`recruitment` = ?, " +
                                     "`hosts` = ?, " +
-                                    "`categories` = ?, " +
+                                    "`categories1 = ?, " +
+                                    "`categories2 = ?, " +
                                     "`period` = ?, " +
                                     "`cover` = ?, " +
                                     "`cont_locate` = ?, " +
                                     "`positions` = ?" +
-                                    "WHERE contests_id = ?", insert, function (err) {
+                                    "WHERE contests_id = ?", update, function (err) {
                                     if (err) {
                                         console.error(err);
                                         connection.rollback(function() {
@@ -923,7 +969,7 @@ var contests_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select_query = function() {
                 var select = [data.users_id, data.amount];
-                var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, " +
+                var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories1, categories2, period, " +
                     "cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
                     "(SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = contests_id AND app_users_id = ?) AS is_apply " +
                     "FROM Contests WHERE contests_id IN (";
@@ -944,7 +990,29 @@ var contests_model = {
                             }
                             connection.release();
 
-                            return callback({ result: true, msg: "찜 목록 가져옴", data: rows });
+                            // 카테고리 이름 파싱
+                            var length = 0;
+                            rows.forEach(function(val, index) {
+                                categories_model.get_category_name_by_id({ contests_id: val.contests_id }, function(result) {
+                                    if (result.result) {
+                                        rows[index].categories1 = result.data[0];
+                                        rows[index].categories2 = result.data[1];
+
+                                        rows[index].categories = JSON.stringify(result.data);
+
+                                        length++;
+                                        if (length == rows.length) {
+                                            return callback({ result: true, msg: "찜 목록 가져옴", data: rows });
+                                        }
+
+                                    } else {
+                                        return callback({
+                                            result: false,
+                                            msg: result.msg
+                                        });
+                                    }
+                                });
+                            });
                         });
                     }
                 });
@@ -980,7 +1048,7 @@ var contests_model = {
             if (err) return callback({ result: false, msg: "에러 발생. 원인: "+err });
             var select_query = function () {
                 var select = [data.users_id, data.users_id, data.amount];
-                var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories, period, " +
+                var sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, hosts, categories1, categories2, period, " +
                     "cover, cont_locate, positions, Contests.postdate, members, appliers, clips, views, is_finish, " +
                     "(SELECT COUNT(applies_id) FROM Applies WHERE app_contests_id = contests_id AND app_users_id = ?) AS is_apply, " +
                     "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = ?) AS is_clip " +
@@ -1002,7 +1070,29 @@ var contests_model = {
                             }
                             connection.release();
 
-                            return callback({result: true, msg: "카테고리별 목록 가져옴", data: rows});
+                            // 카테고리 이름 파싱
+                            var length = 0;
+                            rows.forEach(function(val, index) {
+                                categories_model.get_category_name_by_id({ contests_id: val.contests_id }, function(result) {
+                                    if (result.result) {
+                                        rows[index].categories1 = result.data[0];
+                                        rows[index].categories2 = result.data[1];
+
+                                        rows[index].categories = JSON.stringify(result.data);
+
+                                        length++;
+                                        if (length == rows.length) {
+                                            return callback({result: true, msg: "카테고리별 목록 가져옴", data: rows});
+                                        }
+
+                                    } else {
+                                        return callback({
+                                            result: false,
+                                            msg: result.msg
+                                        });
+                                    }
+                                });
+                            });
                         });
                     }
                 });
@@ -1039,11 +1129,11 @@ var contests_model = {
         pool.getConnection(function (err, connection) {
             var select, sql;
             if (typeof data.users_id == "undefined") {
-                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories1, categories2, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
             } else {
-                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
+                sql = "SELECT contests_id, title, cont_title, recruitment, cont_writer, Users.username, hosts, categories1, categories2, period, cover, cont_locate, positions, postdate, members, appliers, clips, views, is_finish, " +
                     "(SELECT COUNT(cli_contests_id) FROM Clips WHERE cli_contests_id = Contests.contests_id AND cli_users_id = " + data.users_id + ") AS is_clip " +
                     "FROM Contests " +
                     "INNER JOIN Users ON Contests.cont_writer = Users.users_id ";
@@ -1065,11 +1155,33 @@ var contests_model = {
 
                 var dummy_data;
                 if (rows.length != 0) {
-                    dummy_data = {
-                        result: true,
-                        msg: "검색 목록 가져옴",
-                        data: rows
-                    };
+                    // 카테고리 이름 파싱
+                    var length = 0;
+                    rows.forEach(function(val, index) {
+                        categories_model.get_category_name_by_id({ contests_id: val.contests_id }, function(result) {
+                            if (result.result) {
+                                rows[index].categories1 = result.data[0];
+                                rows[index].categories2 = result.data[1];
+
+                                rows[index].categories = JSON.stringify(result.data);
+
+                                length++;
+                                if (length == rows.length) {
+                                    dummy_data = {
+                                        result: true,
+                                        msg: "검색 목록 가져옴",
+                                        data: rows
+                                    };
+                                }
+
+                            } else {
+                                return callback(dummy_data = {
+                                    result: false,
+                                    msg: result.msg
+                                });
+                            }
+                        });
+                    });
                 } else {
                     dummy_data = {
                         result: false,
